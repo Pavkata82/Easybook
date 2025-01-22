@@ -1,0 +1,113 @@
+﻿.hotel-create-form {
+    max-width: 1000px;
+    margin: 5vh auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+    .hotel-create-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #444;
+    }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="file"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.facilities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.facility-card {
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+    .facility-card:hover {
+        background-color: #f7f7f7;
+    }
+
+    .facility-card.selected {
+        border-color: #007bff;
+        background-color: #e6f4ff;
+    }
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+#image-preview {
+    display: flex;
+    flex-wrap: wrap; /* Ensure images are in a row */
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.info-msg {
+    color: #007bff; /* Match the submit button's blue */
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: left;
+    width: 100%; /* Take the full width of the container */
+}
+
+#image-preview img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+    #image-preview img.selected {
+        border: solid 3px #007bff;
+    }

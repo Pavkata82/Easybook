@@ -1,0 +1,136 @@
+﻿@using System.Globalization
+@model Easybook.Models.ViewModels.HotelViewModel
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<style>
+    .hotel-details {
+        background-color: #f8f9fa;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .hotel-images img {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        cursor: pointer;
+    }
+
+    .hotel-info {
+        margin-top: 2rem;
+    }
+
+    .hotel-description {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .room-types {
+        margin-top: 1rem;
+        color: #555;
+    }
+
+    .price {
+        margin-top: 1rem;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #0056b3;
+    }
+
+    .combinations-section {
+        margin-top: 2rem;
+    }
+
+        .combinations-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .combinations-section li {
+            background-color: #f1f1f1;
+            margin: 0.5rem 0;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .combinations-section .no-combinations {
+            font-style: italic;
+            color: #888;
+        }
+</style>
+
+<div class="container my-5">
+    <div class="hotel-details">
+        <!-- Hotel Images Section with Carousel -->
+        <div class="hotel-images">
+            <div id="hotelImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    @foreach (var imageUrl in Model.Images)
+                    {
+                        <div class="carousel-item @(Model.Images.IndexOf(imageUrl) == 0 ? "active" : "")">
+                            <img src="@imageUrl" class="d-block w-100" alt="Hotel Image">
+                        </div>
+                    }
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#hotelImageCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#hotelImageCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+
+        <h2>@Model.Name</h2>
+        <p class="hotel-description">@Model.Description</p>
+
+        <div class="hotel-info">
+            <div class="room-types">
+                <strong>Видове стаи:</strong>
+                @if (Model.RoomTypes != null && Model.RoomTypes.Any())
+                {
+                    @string.Join(", ", Model.RoomTypes)
+                }
+                else
+                {
+                    <p>Няма видове стаи.</p>
+                }
+            </div>
+
+            <div class="price">
+                <strong>Цена на нощувка:</strong> @Model.PricePerNight.ToString("C", new CultureInfo("bg-BG"))
+            </div>
+
+            <a href="@Url.Action("Index", "Hotel")" class="btn btn-secondary mt-4">
+                Назад към списъка с хотели
+            </a>
+        </div>
+
+        <!-- New Section for Top Combinations -->
+        <div class="combinations-section">
+            <h3>Най-добри комбинации за стаи:</h3>
+            @if (Model.RoomTypes != null && Model.RoomTypes.Any())
+            {
+                <ul>
+                    @foreach (var combination in Model.RoomTypes)
+                    {
+                        <li>@combination</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="no-combinations">Няма налични комбинации за тези дати.</p>
+            }
+        </div>
+    </div>
+</div>

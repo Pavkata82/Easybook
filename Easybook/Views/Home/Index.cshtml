@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    /* Additional styling for better structure */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .hero {
+        background: linear-gradient(to bottom right, #0056b3, #004085);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+    }
+
+    .form-container {
+        max-width: 600px;
+        margin-top: 2rem;
+    }
+
+    /* Highlighting the date range */
+    .highlighted-date {
+        background-color: #0056b3;
+        color: white;
+    }
+
+    /* Styling for the datepicker popup */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+    }
+</style>
+
+<div class="container-fluid hero">
+    <div class="row">
+        <div class="col-md-12 d-flex flex-column align-items-center">
+            <p class="display-1 text-white fw-bold mb-2">Easybook</p>
+            <p class="lead text-light fw-semibold mb-5">
+                Прави резервациите ти лесни...
+            </p>
+
+            <form class="form-container bg-white p-4 rounded shadow" method="GET" action="@Url.Action("Index", "Hotel")">
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label for="checkInDate" class="form-label text-dark">Дата на настаняване</label>
+                        <input type="date" class="form-control" id="checkInDate" name="checkInDate" required />
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="checkOutDate" class="form-label text-dark">Дата на напускане</label>
+                        <input type="date" class="form-control" id="checkOutDate" name="checkOutDate" required />
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label for="adults" class="form-label text-light">Възрастни</label>
+                        <select class="form-select" id="adults" name="adults">
+                            <option value="1">1 Възрастен</option>
+                            <option value="2">2 Възрастни</option>
+                            <option value="3">3 Възрастни</option>
+                            <option value="4">4 Възрастни</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="kids" class="form-label text-light">Деца</label>
+                        <select class="form-select" id="kids" name="kids">
+                            <option value="0">Без деца</option>
+                            <option value="1">1 Дете</option>
+                            <option value="2">2 Деца</option>
+                            <option value="3">3 Деца</option>
+                            <option value="4">4 Деца</option>
+                            <option value="5">5 Деца</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-3">Търсене</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous">
+</script>
+
+<script src="~/js/datepicker.js"></script>
+
+

@@ -1,0 +1,19 @@
+# Ignore Visual Studio files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Ignore build results
+bin/
+obj/
+
+# Ignore Node.js modules
+node_modules/
+
+# Ignore ASP.NET Core development server files
+Properties/
+
+# Ignore appsettings files
+appsettings.json
+appsettings.*.json

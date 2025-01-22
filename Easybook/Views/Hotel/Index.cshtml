@@ -1,0 +1,118 @@
+﻿@model IEnumerable<Easybook.Models.ViewModels.HotelViewModel>
+
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Hotels";
+}
+
+<style>
+    .hotel-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Ensures all cards take the same height */
+    }
+
+        .hotel-card img {
+            max-height: 200px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+    .hotel-card-body {
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        flex-grow: 1; /* Fills remaining space in the card */
+    }
+
+    .hotel-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #0056b3;
+    }
+
+    .hotel-desc {
+        color: #6c757d;
+        margin-top: 0.5rem;
+        margin-bottom: 1rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3; /* Limit to 3 lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    ul.list-unstyled {
+        margin-bottom: auto; /* Prevents extra spacing */
+    }
+
+    .btn-primary {
+        margin-top: 1rem;
+    }
+
+    /* Add spacing between rows of cards */
+    .row {
+        row-gap: 1.5rem;
+    }
+</style>
+
+<div class="container my-5">
+    <h1 class="text-center mb-4">Резултати от търсенето</h1>
+    <div class="row">
+        @foreach (var hotel in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="hotel-card">
+                    <img src="@hotel.ImageUrl" alt="Hotel Image" />
+                    <div class="hotel-card-body">
+                        <p class="hotel-title">@hotel.Name</p>
+                        <p class="hotel-desc">@hotel.Description</p>
+                        <ul class="list-unstyled mb-3">
+                            <li>
+                                <strong>Цена:</strong>
+                                @hotel.PricePerNight.ToString("C", new CultureInfo("bg-BG"))/нощувка
+                            </li>
+                            <li>
+                                <strong>Видове стаи:</strong>
+                                <ul>
+                                    @foreach (var roomType in hotel.RoomTypes)
+                                    {
+                                        <li>@roomType</li>
+                                    }
+                                </ul>
+                            </li>
+                        </ul>
+                        <a href="@Url.Action("Details", "Hotel", new { id = hotel.HotelId, checkInDate = Context.Request.Query["checkInDate"], checkOutDate = Context.Request.Query["checkOutDate"], adults = Context.Request.Query["adults"], kids = Context.Request.Query["kids"] })" class="btn btn-primary w-100">
+                            Виж повече
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination (optional) -->
+    <nav aria-label="Search results pagination">
+        <ul class="pagination justify-content-center mt-4">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">Предишна</a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Следваща</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+
