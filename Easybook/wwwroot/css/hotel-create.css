@@ -65,23 +65,6 @@ textarea {
         background-color: #e6f4ff;
     }
 
-.btn {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    background-color: #007bff;
-    color: #fff;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-    .btn:hover {
-        background-color: #0056b3;
-    }
-
 #image-preview {
     display: flex;
     flex-wrap: wrap; /* Ensure images are in a row */
