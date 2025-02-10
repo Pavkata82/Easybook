@@ -1,8 +1,11 @@
 ﻿using Easybook.Data;
 using Easybook.Models;
 using Easybook.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Easybook.Controllers
 {
@@ -10,15 +13,47 @@ namespace Easybook.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public HotelController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment)
+        public HotelController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index(DateTime? checkInDate, DateTime? checkOutDate, int? adults, int? kids)
         {
+            // Get today's date and format it
+            DateTime today = DateTime.Today;
+
+            // Validate CheckInDate (cannot be before today)
+            if (checkInDate.HasValue && checkInDate.Value < today)
+            {
+                ModelState.AddModelError("checkInDate", "Дата на настаняване не може да бъде в миналото.");
+            }
+
+            // Validate CheckOutDate (cannot be before CheckInDate)
+            if (checkInDate.HasValue && checkOutDate.HasValue && checkOutDate.Value <= checkInDate.Value)
+            {
+                ModelState.AddModelError("checkOutDate", "Дата на напускане не може да бъде преди датата на настаняване.");
+            }
+
+            // If there are validation errors, return to home view with the error messages
+            if (!ModelState.IsValid)
+            {
+                // Store the validation errors in TempData
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    TempData["ErrorMessages"] = TempData["ErrorMessages"] != null
+                        ? $"{TempData["ErrorMessages"]}\n{error.ErrorMessage}"
+                        : error.ErrorMessage;
+                }
+
+                // Redirect to Home/Index with validation errors stored in TempData
+                return RedirectToAction("Index", "Home");
+            }
+
             var hotelsQuery = _context.Hotels
                 .Include(h => h.Rooms)
                     .ThenInclude(r => r.RoomType)
@@ -64,6 +99,9 @@ namespace Easybook.Controllers
 
             return View(hotels);
         }
+
+
+        [Authorize]
         public IActionResult Create()
         {
             var viewModel = new HotelCreateViewModel
@@ -76,6 +114,7 @@ namespace Easybook.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create(HotelCreateViewModel viewModel)
         {
             if (viewModel.SingleRoomCount == 0 && viewModel.SingleRoomPrice > 0)
@@ -178,10 +217,9 @@ namespace Easybook.Controllers
                 return NotFound();
             }
 
-            // Fetch the hotel along with related rooms and images
             var hotel = await _context.Hotels
                 .Include(h => h.Rooms)
-                    .ThenInclude(r => r.RoomType) // Including room type details
+                    .ThenInclude(r => r.RoomType)
                 .Include(h => h.Images)
                 .FirstOrDefaultAsync(m => m.HotelId == id);
 
@@ -190,38 +228,194 @@ namespace Easybook.Controllers
                 return NotFound();
             }
 
-            // Create a view model to pass the required data to the view
             var hotelViewModel = new HotelViewModel
             {
                 HotelId = hotel.HotelId,
                 Name = hotel.Name,
                 Description = hotel.Description,
                 Images = hotel.Images.Select(img => img.ImageUrl).ToList(),
-                PricePerNight = hotel.Rooms.Any() ? hotel.Rooms.Min(r => r.Price) : 0m, // Use null if no rooms are available
-                RoomTypes = hotel.Rooms
-                    .Select(r => r.RoomType.Name.ToString())
-                    .Distinct()
-                    .ToList()
+                PricePerNight = hotel.Rooms.Any() ? hotel.Rooms.Min(r => r.Price) : 0m,
+                RoomTypes = hotel.Rooms.Select(r => r.RoomType.Name).Distinct().ToList(),
             };
 
-            // Handle case when no room types are available
-            if (hotelViewModel.RoomTypes == null || !hotelViewModel.RoomTypes.Any())
-            {
-                hotelViewModel.RoomTypes = new List<string> { "Няма налични типове стаи." };
-            }
-
-            // Return best 2-3 combinations if available
             if (checkInDate.HasValue && checkOutDate.HasValue && adults.HasValue && kids.HasValue)
             {
                 int totalGuests = adults.Value + kids.Value;
 
-                var bestCombinations = GetBestRoomCombinations(hotel.Rooms.ToList(), totalGuests, checkInDate.Value, checkOutDate.Value);
+                // Get both combinations
+                var (exactFit, minimalEmptySpots) = GetRoomCombinations(hotel.Rooms.ToList(), totalGuests, checkInDate.Value, checkOutDate.Value);
 
-                hotelViewModel.RoomTypes = bestCombinations;
+                hotelViewModel.ExactFitCombination = exactFit;
+                hotelViewModel.MinimalEmptySpotsCombination = minimalEmptySpots;
             }
 
             return View(hotelViewModel);
         }
+
+        [Authorize]
+        public IActionResult Booking(int hotelId, string combination)
+        {
+            if (string.IsNullOrWhiteSpace(combination))
+            {
+                return BadRequest("Комбинацията не е предоставена.");
+            }
+
+            var parsedCombination = new List<(string RoomTypeName, int RoomCount)>();
+
+            try
+            {
+                parsedCombination = combination.Split(';')
+                    .Select(c =>
+                    {
+                        var parts = c.Split(':');
+                        if (parts.Length != 2 || !int.TryParse(parts[1], out int roomCount))
+                        {
+                            throw new FormatException("Невалиден формат на комбинацията.");
+                        }
+                        return (RoomTypeName: parts[0], RoomCount: roomCount);
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Грешка при обработка на комбинацията: {ex.Message}");
+            }
+
+            if (!parsedCombination.Any())
+            {
+                return BadRequest("Комбинацията не съдържа валидни стаи.");
+            }
+
+            ViewBag.HotelId = hotelId;
+            ViewBag.Combination = parsedCombination;
+
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> Booking(int hotelId,
+        string combination,
+        string specialRequests,
+        DateTime checkInDate,
+        DateTime checkOutDate,
+        string phoneNumber)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Get the logged-in user
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (userId == null)
+                {
+                    return Unauthorized("Неуспешно идентифициране на потребителя.");
+                }
+
+                // Get the user's phone number if not already set
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user.PhoneNumber == null && !string.IsNullOrWhiteSpace(phoneNumber))
+                {
+                    user.PhoneNumber = phoneNumber;
+                    await _userManager.UpdateAsync(user);
+                }
+
+                // Parse room combinations
+                var parsedCombination = combination.Split(';')
+                    .Select(c =>
+                    {
+                        var parts = c.Split(':');
+                        return (RoomTypeName: parts[0], RoomCount: int.Parse(parts[1]));
+                    })
+                    .ToList();
+
+                // Calculate total price and check availability
+                decimal totalPrice = 0m;
+                var bookingDateRanges = new List<BookingDateRange>();
+
+                foreach (var (RoomTypeName, RoomCount) in parsedCombination)
+                {
+                    var rooms = await _context.Rooms
+                        .Where(r => r.HotelId == hotelId &&
+                                    r.RoomType.Name == RoomTypeName &&
+                                    !r.BookingDateRanges.Any(bdr =>
+                                        bdr.StartDate < checkOutDate && bdr.EndDate > checkInDate))
+                        .Take(RoomCount)
+                        .ToListAsync();
+
+                    if (rooms.Count < RoomCount)
+                    {
+                        return BadRequest($"Недостатъчно свободни стаи за {RoomTypeName}.");
+                    }
+
+                    totalPrice += rooms.Sum(r => r.Price) * (checkOutDate - checkInDate).Days;
+
+                    // Add BookingDateRanges for each room
+                    foreach (var room in rooms)
+                    {
+                        bookingDateRanges.Add(new BookingDateRange
+                        {
+                            RoomId = room.RoomId,
+                            StartDate = checkInDate,
+                            EndDate = checkOutDate
+                        });
+                    }
+                }
+
+                // Create and save the booking
+                var booking = new Booking
+                {
+                    UserId = userId,
+                    HotelId = hotelId,
+                    TotalPrice = totalPrice,
+                    StatusId = 2, // Pending
+                };
+
+                _context.Bookings.Add(booking);
+                await _context.SaveChangesAsync();
+
+                // Assign BookingId to BookingDateRanges and save
+                foreach (var dateRange in bookingDateRanges)
+                {
+                    dateRange.BookingId = booking.BookingId;
+                }
+
+                _context.BookingDateRanges.AddRange(bookingDateRanges);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return RedirectToAction("BookingConfirmation", new { bookingId = booking.BookingId });
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return BadRequest("Грешка при записване на резервацията.");
+            }
+        }
+
+        [Authorize]
+        public async Task<IActionResult> BookingConfirmation(int bookingId)
+        {
+            var booking = await _context.Bookings
+                .Include(b => b.Hotel)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            var hotel = booking.Hotel; // Retrieve hotel details for confirmation
+            var fullName = User.Identity.Name; // Assuming the name is stored here, adjust as needed
+
+            // Pass the data to the view
+            ViewBag.HotelId = hotel.HotelId;
+            ViewBag.FullName = fullName;
+
+            return View();
+        }
+
 
 
         private bool IsCombinationPossible(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
@@ -265,47 +459,94 @@ namespace Easybook.Controllers
                 }
             }
         }
-        private bool IsRoomAvailable(Room room, DateTime checkInDate, DateTime checkOutDate)
+        private (List<(string RoomTypeName, int RoomCount)> ExactFitCombination,
+         List<(string RoomTypeName, int RoomCount)> MinimalEmptySpotsCombination)
+        GetRoomCombinations(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
         {
-            // Check if room is available for the given date range
-            var overlappingBookings = _context.BookingDateRanges
-                .Any(bdr => bdr.RoomId == room.RoomId &&
-                            (bdr.StartDate < checkOutDate && bdr.EndDate > checkInDate));
+            // Step 1: Get available rooms
+            var availableRooms = GetAvailableRooms(rooms, checkInDate, checkOutDate);
 
-            return !overlappingBookings; // Return true if the room is available
+            // Step 2: Calculate the exact fit combination
+            var exactFitCombination = FindExactCombination(availableRooms, totalGuests);
+
+            // Step 3: Calculate the minimal empty spots combination
+            var minimalEmptySpotsCombination = FindBestFitCombination(availableRooms, totalGuests);
+
+            return (exactFitCombination, minimalEmptySpotsCombination);
         }
-        private List<string> GetBestRoomCombinations(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
+
+        private List<Room> GetAvailableRooms(List<Room> rooms, DateTime checkInDate, DateTime checkOutDate)
         {
-            // Filter rooms based on availability and capacity
-            var availableRooms = rooms
-                .Where(r => IsRoomAvailable(r, checkInDate, checkOutDate)) // Check room availability for the dates
-                .OrderByDescending(r => r.Capacity) // Sort by capacity
+            return rooms
+                .Where(r => IsRoomAvailable(r, checkInDate, checkOutDate))
+                .OrderByDescending(r => r.Capacity) // Prioritize larger rooms
+                .ThenBy(r => r.Price)               // Then prioritize cheaper rooms
                 .ToList();
+        }
 
+        private List<(string RoomTypeName, int RoomCount)> FindExactCombination(List<Room> rooms, int totalGuests)
+        {
+            var bestCombination = new List<(string RoomTypeName, int RoomCount)>();
             int remainingGuests = totalGuests;
-            List<string> bestCombinations = new List<string>();
 
-            // Try to find the best combinations
-            foreach (var room in availableRooms)
+            foreach (var room in rooms)
             {
                 if (remainingGuests <= 0)
                     break;
 
-                if (room.Capacity <= remainingGuests)
+                int roomCount = remainingGuests / room.Capacity;
+                if (roomCount > 0)
                 {
-                    remainingGuests -= room.Capacity;
-                    bestCombinations.Add($"{room.RoomType.Name} ({room.Capacity} guests)");
+                    bestCombination.Add((room.RoomType.Name, roomCount));
+                    remainingGuests -= roomCount * room.Capacity;
                 }
             }
 
-            // Return best combinations or a default message
-            if (bestCombinations.Count == 0)
+            return remainingGuests == 0 ? bestCombination : new List<(string RoomTypeName, int RoomCount)>();
+        }
+
+        private List<(string RoomTypeName, int RoomCount)> FindBestFitCombination(List<Room> rooms, int totalGuests)
+        {
+            var bestCombination = new List<(string RoomTypeName, int RoomCount)>();
+            int minimalExtraCapacity = int.MaxValue;
+
+            foreach (var room in rooms)
             {
-                bestCombinations.Add("Няма налични комбинации за тези дати.");
+                var currentCombination = new List<(string RoomTypeName, int RoomCount)>();
+                int currentGuests = 0;
+
+                foreach (var selectedRoom in rooms)
+                {
+                    int roomCount = (totalGuests - currentGuests + selectedRoom.Capacity - 1) / selectedRoom.Capacity; // Round up
+                    if (roomCount > 0)
+                    {
+                        currentCombination.Add((selectedRoom.RoomType.Name, roomCount));
+                        currentGuests += roomCount * selectedRoom.Capacity;
+                    }
+                }
+
+                // Calculate extra capacity
+                int extraCapacity = currentGuests - totalGuests;
+                if (extraCapacity < minimalExtraCapacity)
+                {
+                    bestCombination = new List<(string RoomTypeName, int RoomCount)>(currentCombination);
+                    minimalExtraCapacity = extraCapacity;
+                }
             }
 
-            return bestCombinations.Take(3).ToList(); // Return top 2-3 combinations
+            return bestCombination;
         }
+
+        private bool IsRoomAvailable(Room room, DateTime checkInDate, DateTime checkOutDate)
+        {
+            // Check if the room is available for the given date range
+            var overlappingBookings = _context.BookingDateRanges
+                .Any(bdr => bdr.RoomId == room.RoomId &&
+                            (bdr.StartDate < checkOutDate && bdr.EndDate > checkInDate));
+
+            return !overlappingBookings;
+        }
+
 
     }
 }

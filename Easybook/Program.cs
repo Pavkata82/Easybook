@@ -1,6 +1,8 @@
+using Easybook.Constants;
 using Easybook.Data;
 using Easybook.Models;
 using Easybook.Services;
+using Humanizer.Localisation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -21,23 +23,49 @@ namespace Easybook
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
+                options.SignIn.RequireConfirmedAccount = true;
+                options.SignIn.RequireConfirmedEmail = true;
                 options.Password.RequireDigit = false;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
-
                 options.SignIn.RequireConfirmedAccount = false;
             })
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Identity/Account/Login";
+                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+            });
+
+            builder.Services.AddRazorPages();
+
+            builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
             builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
+
+            // Restrict Identity pages middleware
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path.StartsWithSegments("/Identity/Account") &&
+                    !IdentityAllowedUrls.AllowedUrls.Any(url => context.Request.Path.StartsWithSegments(url, StringComparison.OrdinalIgnoreCase)))
+                {
+                    context.Response.StatusCode = 404; // Return "Not Found"
+                    return;
+                }
+
+                await next(); // Continue to next middleware
+            });
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

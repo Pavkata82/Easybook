@@ -31,7 +31,6 @@
         cursor: pointer;
     }
 </style>
-
 <div class="container-fluid hero">
     <div class="row">
         <div class="col-md-12 d-flex flex-column align-items-center">
@@ -39,6 +38,13 @@
             <p class="lead text-light fw-semibold mb-5">
                 Прави резервациите ти лесни...
             </p>
+
+            @if (ViewData["ErrorMessages"] != null)
+            {
+                <div class="alert alert-danger">
+                    @ViewData["ErrorMessages"]
+                </div>
+            }
 
             <form class="form-container bg-white p-4 rounded shadow" method="GET" action="@Url.Action("Index", "Hotel")">
                 <div class="row g-3 mb-3">
@@ -54,7 +60,6 @@
 
                 <div class="row g-3 mb-3">
                     <div class="col-sm-6">
-                        <label for="adults" class="form-label text-light">Възрастни</label>
                         <select class="form-select" id="adults" name="adults">
                             <option value="1">1 Възрастен</option>
                             <option value="2">2 Възрастни</option>
@@ -63,7 +68,6 @@
                         </select>
                     </div>
                     <div class="col-sm-6">
-                        <label for="kids" class="form-label text-light">Деца</label>
                         <select class="form-select" id="kids" name="kids">
                             <option value="0">Без деца</option>
                             <option value="1">1 Дете</option>

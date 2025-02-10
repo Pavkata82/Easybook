@@ -1,0 +1,43 @@
+﻿@{
+    var hotelId = ViewBag.HotelId as int?;
+    var combination = ViewBag.Combination as List<(string RoomTypeName, int RoomCount)>;
+
+    if (hotelId == null || combination == null)
+    {
+        <h3 class="text-danger">Грешка: Данните за резервацията не са налични.</h3>
+        return;
+    }
+}
+
+<div class="container">
+    <h3>Избрана комбинация</h3>
+    <ul class="list-group mb-4">
+        @foreach (var (RoomTypeName, RoomCount) in combination)
+        {
+            <li class="list-group-item">
+                <strong>@RoomCount</strong> x @RoomTypeName
+            </li>
+        }
+    </ul>
+
+    <h3>Данни за резервация</h3>
+    <form asp-action="Booking" method="post">
+        <input type="hidden" name="HotelId" value="@hotelId" />
+        <input type="hidden" name="Combination" value="@string.Join(";", combination.Select(c => $"{c.RoomTypeName}:{c.RoomCount}"))" />
+        <input type="hidden" name="CheckInDate" value="@Context.Request.Query["checkInDate"]" />
+        <input type="hidden" name="CheckOutDate" value="@Context.Request.Query["checkOutDate"]" />
+
+        <div class="mb-3">
+            <label for="phoneNumber" class="form-label">Телефонен номер</label>
+            <input type="tel" class="form-control" id="phoneNumber" name="PhoneNumber" />
+            <small class="text-muted">Попълнете, ако няма зададен номер в профила ви.</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="specialRequests" class="form-label">Специални изисквания (по желание)</label>
+            <textarea class="form-control" id="specialRequests" name="SpecialRequests" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Потвърди резервацията</button>
+    </form>
+</div>

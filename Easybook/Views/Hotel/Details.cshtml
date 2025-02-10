@@ -42,28 +42,6 @@
         font-weight: bold;
         color: #0056b3;
     }
-
-    .combinations-section {
-        margin-top: 2rem;
-    }
-
-        .combinations-section ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .combinations-section li {
-            background-color: #f1f1f1;
-            margin: 0.5rem 0;
-            padding: 1rem;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .combinations-section .no-combinations {
-            font-style: italic;
-            color: #888;
-        }
 </style>
 
 <div class="container my-5">
@@ -115,22 +93,57 @@
             </a>
         </div>
 
-        <!-- New Section for Top Combinations -->
-        <div class="combinations-section">
-            <h3>Най-добри комбинации за стаи:</h3>
-            @if (Model.RoomTypes != null && Model.RoomTypes.Any())
+        <div class="best-combinations d-flex flex-column">
+            <h3>Най-добри комбинации</h3>
+
+            @if (Model.ExactFitCombination != null && Model.ExactFitCombination.Any())
             {
-                <ul>
-                    @foreach (var combination in Model.RoomTypes)
-                    {
-                        <li>@combination</li>
-                    }
-                </ul>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Точна комбинация</h5>
+                        <ul>
+                            @foreach (var room in Model.ExactFitCombination)
+                            {
+                                <li>@room.RoomTypeName - @room.RoomCount стая(и)</li>
+                            }
+                        </ul>
+                        <a href="@Url.Action("Booking", "Hotel", new {
+                            hotelId = Model.HotelId,
+                            combination = string.Join(";", Model.ExactFitCombination.Select(r => $"{r.RoomTypeName}:{r.RoomCount}")),
+                            checkInDate = Context.Request.Query["checkInDate"],
+                            checkOutDate = Context.Request.Query["checkOutDate"]
+                        })" class="btn btn-primary">
+                            Резервирай сега
+                        </a>
+
+                    </div>
+                </div>
             }
-            else
+
+            @if (Model.MinimalEmptySpotsCombination != null && Model.MinimalEmptySpotsCombination.Any())
             {
-                <p class="no-combinations">Няма налични комбинации за тези дати.</p>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Комбинация с минимални празни места</h5>
+                        <ul>
+                            @foreach (var room in Model.MinimalEmptySpotsCombination)
+                            {
+                                <li>@room.RoomTypeName - @room.RoomCount стая(и)</li>
+                            }
+                        </ul>
+                        <a href="@Url.Action("Booking", "Hotel", new {
+                            hotelId = Model.HotelId,
+                            combination = string.Join(";", Model.MinimalEmptySpotsCombination.Select(r => $"{r.RoomTypeName}:{r.RoomCount}")),
+                            checkInDate = Context.Request.Query["checkInDate"],
+                            checkOutDate = Context.Request.Query["checkOutDate"]
+                        })" class="btn btn-primary">
+                            Резервирай сега
+                        </a>
+                    </div>
+                </div>
             }
         </div>
+
+
     </div>
 </div>

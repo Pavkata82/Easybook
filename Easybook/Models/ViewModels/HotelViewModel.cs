@@ -24,6 +24,9 @@ namespace Easybook.Models.ViewModels
         public List<string> RoomTypes { get; set; }
 
         public List<string> Images { get; set; } = new List<string>();
+
+        public List<(string RoomTypeName, int RoomCount)> ExactFitCombination { get; set; }
+        public List<(string RoomTypeName, int RoomCount)> MinimalEmptySpotsCombination { get; set; }
     }
 
 

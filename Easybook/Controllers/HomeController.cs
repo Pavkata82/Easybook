@@ -15,8 +15,11 @@ namespace Easybook.Controllers
 
         public IActionResult Index()
         {
+            // Optionally, set a ViewData message if there are any validation errors stored in TempData
+            ViewData["ErrorMessages"] = TempData["ErrorMessages"];
             return View();
         }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

@@ -125,9 +125,16 @@ namespace Easybook.Areas.Identity.Pages.Account
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
-            //ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
             if (ModelState.IsValid)
             {
+                var userExist = await _userManager.FindByEmailAsync(Input.Email);
+                if (userExist != null)
+                {
+                    ModelState.AddModelError(string.Empty, "Потребител с този имейл вече съществува.");
+                    return Page();
+                }
+
                 var user = CreateUser();
 
                 // Set FirstName and LastName from the InputModel
@@ -137,19 +144,14 @@ namespace Easybook.Areas.Identity.Pages.Account
                 // Handle file upload for profile picture
                 if (Input.ProfilePicture != null && Input.ProfilePicture.Length > 0)
                 {
-                    // Generate a unique file name for the profile picture
                     var fileName = Guid.NewGuid().ToString() + Path.GetExtension(Input.ProfilePicture.FileName);
-
-                    // Path to save the file in wwwroot/images/users directory
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", fileName);
 
-                    // Save the image file to the directory
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await Input.ProfilePicture.CopyToAsync(stream);
                     }
 
-                    // Set the ProfilePictureUrl property to the file URL
                     user.ProfilePictureUrl = "/images/users/" + fileName;
                 }
 
@@ -161,26 +163,27 @@ namespace Easybook.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    //var userId = await _userManager.GetUserIdAsync(user);
-                    //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    //code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    //var callbackUrl = Url.Page(
-                    //    "/Account/ConfirmEmail",
-                    //    pageHandler: null,
-                    //    values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                    //    protocol: Request.Scheme);
+                    var userId = await _userManager.GetUserIdAsync(user);
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                    //await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                    //    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                    var callbackUrl = Url.Page(
+                        "/Account/ConfirmEmail",
+                        pageHandler: null,
+                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
+                        protocol: Request.Scheme);
 
-                    //if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    //{
-                    //    return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
-                    //}
-                    
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect(returnUrl);
+                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    {
+                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
+                    }
+
+                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email });
                 }
+
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -190,6 +193,8 @@ namespace Easybook.Areas.Identity.Pages.Account
             // If we got this far, something failed, redisplay form
             return Page();
         }
+
+
 
         private ApplicationUser CreateUser()
         {
