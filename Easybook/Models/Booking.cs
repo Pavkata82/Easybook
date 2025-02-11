@@ -22,6 +22,9 @@ namespace Easybook.Models
         public int StatusId { get; set; } // E.g., Pending, Confirmed
         public Status Status { get; set; }
 
+        [StringLength(100)]
+        public string SpecialRequests { get; set; }
+
         // Add TotalPrice field
         [Required]
         public decimal TotalPrice { get; set; }

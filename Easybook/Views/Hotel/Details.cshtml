@@ -120,30 +120,6 @@
                 </div>
             }
 
-            @if (Model.MinimalEmptySpotsCombination != null && Model.MinimalEmptySpotsCombination.Any())
-            {
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Комбинация с минимални празни места</h5>
-                        <ul>
-                            @foreach (var room in Model.MinimalEmptySpotsCombination)
-                            {
-                                <li>@room.RoomTypeName - @room.RoomCount стая(и)</li>
-                            }
-                        </ul>
-                        <a href="@Url.Action("Booking", "Hotel", new {
-                            hotelId = Model.HotelId,
-                            combination = string.Join(";", Model.MinimalEmptySpotsCombination.Select(r => $"{r.RoomTypeName}:{r.RoomCount}")),
-                            checkInDate = Context.Request.Query["checkInDate"],
-                            checkOutDate = Context.Request.Query["checkOutDate"]
-                        })" class="btn btn-primary">
-                            Резервирай сега
-                        </a>
-                    </div>
-                </div>
-            }
         </div>
-
-
     </div>
 </div>

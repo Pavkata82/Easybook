@@ -243,10 +243,9 @@ namespace Easybook.Controllers
                 int totalGuests = adults.Value + kids.Value;
 
                 // Get both combinations
-                var (exactFit, minimalEmptySpots) = GetRoomCombinations(hotel.Rooms.ToList(), totalGuests, checkInDate.Value, checkOutDate.Value);
+                var exactFit = GetRoomCombinations(hotel.Rooms.ToList(), totalGuests, checkInDate.Value, checkOutDate.Value);
 
                 hotelViewModel.ExactFitCombination = exactFit;
-                hotelViewModel.MinimalEmptySpotsCombination = minimalEmptySpots;
             }
 
             return View(hotelViewModel);
@@ -417,8 +416,8 @@ namespace Easybook.Controllers
         }
 
 
-
-        private bool IsCombinationPossible(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
+        //Checks if there is a possible combination for the user's input (used in index method)
+        private bool IsCombinationPossible(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate) 
         {
             // Simplified room combination check logic
             var availableRooms = rooms
@@ -459,8 +458,8 @@ namespace Easybook.Controllers
                 }
             }
         }
-        private (List<(string RoomTypeName, int RoomCount)> ExactFitCombination,
-         List<(string RoomTypeName, int RoomCount)> MinimalEmptySpotsCombination)
+
+        private List<(string RoomTypeName, int RoomCount)>
         GetRoomCombinations(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
         {
             // Step 1: Get available rooms
@@ -469,10 +468,7 @@ namespace Easybook.Controllers
             // Step 2: Calculate the exact fit combination
             var exactFitCombination = FindExactCombination(availableRooms, totalGuests);
 
-            // Step 3: Calculate the minimal empty spots combination
-            var minimalEmptySpotsCombination = FindBestFitCombination(availableRooms, totalGuests);
-
-            return (exactFitCombination, minimalEmptySpotsCombination);
+            return exactFitCombination;
         }
 
         private List<Room> GetAvailableRooms(List<Room> rooms, DateTime checkInDate, DateTime checkOutDate)
@@ -503,38 +499,6 @@ namespace Easybook.Controllers
             }
 
             return remainingGuests == 0 ? bestCombination : new List<(string RoomTypeName, int RoomCount)>();
-        }
-
-        private List<(string RoomTypeName, int RoomCount)> FindBestFitCombination(List<Room> rooms, int totalGuests)
-        {
-            var bestCombination = new List<(string RoomTypeName, int RoomCount)>();
-            int minimalExtraCapacity = int.MaxValue;
-
-            foreach (var room in rooms)
-            {
-                var currentCombination = new List<(string RoomTypeName, int RoomCount)>();
-                int currentGuests = 0;
-
-                foreach (var selectedRoom in rooms)
-                {
-                    int roomCount = (totalGuests - currentGuests + selectedRoom.Capacity - 1) / selectedRoom.Capacity; // Round up
-                    if (roomCount > 0)
-                    {
-                        currentCombination.Add((selectedRoom.RoomType.Name, roomCount));
-                        currentGuests += roomCount * selectedRoom.Capacity;
-                    }
-                }
-
-                // Calculate extra capacity
-                int extraCapacity = currentGuests - totalGuests;
-                if (extraCapacity < minimalExtraCapacity)
-                {
-                    bestCombination = new List<(string RoomTypeName, int RoomCount)>(currentCombination);
-                    minimalExtraCapacity = extraCapacity;
-                }
-            }
-
-            return bestCombination;
         }
 
         private bool IsRoomAvailable(Room room, DateTime checkInDate, DateTime checkOutDate)
