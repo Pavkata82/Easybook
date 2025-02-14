@@ -1,11 +1,11 @@
 ﻿@{
-    var hotelId = ViewBag.HotelId as int?;
-    var fullName = ViewBag.FullName as string;
+    var HotelName = ViewBag.HotelName as string;
+    var FullName = ViewBag.FullName as string;
 }
 
 <div class="container">
     <h3>Успешна резервация</h3>
-    <p>Благодарим Ви, @fullName, за Вашата резервация!</p>
-    <p>Очакваме Ви в хотел с ID: @hotelId.</p>
+    <p>Благодарим Ви, @FullName, за Вашата резервация!</p>
+    <p>Очакваме Ви в хотел: @HotelName.</p>
     <a href="/" class="btn btn-primary">Върнете се към началната страница</a>
 </div>

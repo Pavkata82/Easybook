@@ -88,7 +88,12 @@
                 <strong>Цена на нощувка:</strong> @Model.PricePerNight.ToString("C", new CultureInfo("bg-BG"))
             </div>
 
-            <a href="@Url.Action("Index", "Hotel")" class="btn btn-secondary mt-4">
+            <a href="@Url.Action("Index", "Hotel", new {
+                checkInDate = Context.Request.Query["checkInDate"],
+                checkOutDate = Context.Request.Query["checkOutDate"],
+                adults = Context.Request.Query["adults"],
+                kids = Context.Request.Query["kids"]
+            })" class="btn btn-secondary mt-4">
                 Назад към списъка с хотели
             </a>
         </div>
@@ -102,20 +107,23 @@
                     <div class="card-body">
                         <h5 class="card-title">Точна комбинация</h5>
                         <ul>
-                            @foreach (var room in Model.ExactFitCombination)
+                            @foreach (var room in Model.ExactFitCombination.Split(';'))
                             {
-                                <li>@room.RoomTypeName - @room.RoomCount стая(и)</li>
+                                var roomParts = room.Split(':');
+                                if (roomParts.Length == 2)
+                                {
+                                    <li>@roomParts[0] - @roomParts[1] стая(и)</li>
+                                }
                             }
                         </ul>
-                        <a href="@Url.Action("Booking", "Hotel", new {
-                            hotelId = Model.HotelId,
-                            combination = string.Join(";", Model.ExactFitCombination.Select(r => $"{r.RoomTypeName}:{r.RoomCount}")),
-                            checkInDate = Context.Request.Query["checkInDate"],
-                            checkOutDate = Context.Request.Query["checkOutDate"]
-                        })" class="btn btn-primary">
-                            Резервирай сега
-                        </a>
+                        <form asp-action="BookingGet">
+                            <input hidden name="HotelId" value=@Model.HotelId />
+                            <input hidden name="ExactFitCombination" value="@Model.ExactFitCombination" />
+                            <input hidden name="CheckInDate" value=@Context.Request.Query["checkInDate"] />
+                            <input hidden name="CheckOutDate" value=@Context.Request.Query["checkOutDate"] />
 
+                            <button type="submit" class="btn btn-primary">Резервирай сега</button>
+                        </form>
                     </div>
                 </div>
             }

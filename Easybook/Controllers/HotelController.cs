@@ -22,10 +22,16 @@ namespace Easybook.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(DateTime? checkInDate, DateTime? checkOutDate, int? adults, int? kids)
+        public async Task<IActionResult> Index(SearchViewModel model)
         {
             // Get today's date and format it
             DateTime today = DateTime.Today;
+
+            // Extract values from model
+            DateTime? checkInDate = model.CheckInDate;
+            DateTime? checkOutDate = model.CheckOutDate;
+            int? adults = model.Adults;
+            int? kids = model.Kids;
 
             // Validate CheckInDate (cannot be before today)
             if (checkInDate.HasValue && checkInDate.Value < today)
@@ -97,7 +103,13 @@ namespace Easybook.Controllers
                 RoomTypes = h.Rooms.Select(r => r.RoomType.Name).Distinct().ToList()
             }).ToList();
 
-            return View(hotels);
+            var hotelsDatesViewModel = new HotelsDatesViewModel
+            {
+                Hotels = hotels,
+                SearchParams = model
+            };
+
+            return View(hotelsDatesViewModel);
         }
 
 
@@ -210,12 +222,18 @@ namespace Easybook.Controllers
             viewModel.AllFacilities = _context.Facilities.ToList();
             return View(viewModel);
         }
-        public async Task<IActionResult> Details(int? id, DateTime? checkInDate, DateTime? checkOutDate, int? adults, int? kids)
+        public async Task<IActionResult> Details(int? id, SearchViewModel model)
         {
             if (id == null)
             {
                 return NotFound();
             }
+
+            // Extract values from model
+            DateTime? checkInDate = model.CheckInDate;
+            DateTime? checkOutDate = model.CheckOutDate;
+            int? adults = model.Adults;
+            int? kids = model.Kids;
 
             var hotel = await _context.Hotels
                 .Include(h => h.Rooms)
@@ -245,129 +263,137 @@ namespace Easybook.Controllers
                 // Get both combinations
                 var exactFit = GetRoomCombinations(hotel.Rooms.ToList(), totalGuests, checkInDate.Value, checkOutDate.Value);
 
-                hotelViewModel.ExactFitCombination = exactFit;
+
+                hotelViewModel.ExactFitCombination = string.Join(";", exactFit.Select(c => $"{c.RoomTypeName}:{c.RoomCount}"));
             }
 
             return View(hotelViewModel);
         }
 
         [Authorize]
-        public IActionResult Booking(int hotelId, string combination)
+        public async Task<IActionResult> BookingGet(BookingViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(combination))
+
+            if (model.ExactFitCombination == null)
             {
                 return BadRequest("Комбинацията не е предоставена.");
             }
 
-            var parsedCombination = new List<(string RoomTypeName, int RoomCount)>();
-
-            try
-            {
-                parsedCombination = combination.Split(';')
-                    .Select(c =>
-                    {
-                        var parts = c.Split(':');
-                        if (parts.Length != 2 || !int.TryParse(parts[1], out int roomCount))
-                        {
-                            throw new FormatException("Невалиден формат на комбинацията.");
-                        }
-                        return (RoomTypeName: parts[0], RoomCount: roomCount);
-                    })
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Грешка при обработка на комбинацията: {ex.Message}");
-            }
-
-            if (!parsedCombination.Any())
+            if (!model.ExactFitCombination.Any())
             {
                 return BadRequest("Комбинацията не съдържа валидни стаи.");
             }
 
-            ViewBag.HotelId = hotelId;
-            ViewBag.Combination = parsedCombination;
+            // Get the logged-in user
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("Неуспешно идентифициране на потребителя.");
+            }
 
-            return View();
+            model.PhoneNumber = (await _userManager.FindByIdAsync(userId)).PhoneNumber;
+
+            ModelState.Clear();
+
+            return View("Booking", model);
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Booking(int hotelId,
-        string combination,
-        string specialRequests,
-        DateTime checkInDate,
-        DateTime checkOutDate,
-        string phoneNumber)
+        public async Task<IActionResult> BookingPost(BookingViewModel model)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("Неуспешно идентифициране на потребителя.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.PhoneNumber = (await _userManager.FindByIdAsync(userId)).PhoneNumber;
+
+                return View("Booking", model); // Return the view with validation errors
+            }
+
+            if (string.IsNullOrEmpty(model.SpecialRequests))
+            {
+                model.SpecialRequests = ""; // Ensure it is not null
+            }
+
+            // Get the user's phone number if not already set
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (string.IsNullOrEmpty(model.PhoneNumber) && string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                // If the user doesn't have a phone number, make it required
+                ModelState.AddModelError("PhoneNumber", "Моля, попълнете телефонен номер.");
+                return View("Booking", model); // Return the view with the error
+            }
+
+            if (string.IsNullOrEmpty(user.PhoneNumber) && !string.IsNullOrEmpty(model.PhoneNumber))
+            {
+                // If the user doesn't have a phone number but provided one, update it
+                user.PhoneNumber = model.PhoneNumber;
+                await _userManager.UpdateAsync(user);
+            }
+
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // Get the logged-in user
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (userId == null)
-                {
-                    return Unauthorized("Неуспешно идентифициране на потребителя.");
-                }
-
-                // Get the user's phone number if not already set
-                var user = await _userManager.FindByIdAsync(userId);
-                if (user.PhoneNumber == null && !string.IsNullOrWhiteSpace(phoneNumber))
-                {
-                    user.PhoneNumber = phoneNumber;
-                    await _userManager.UpdateAsync(user);
-                }
-
-                // Parse room combinations
-                var parsedCombination = combination.Split(';')
-                    .Select(c =>
-                    {
-                        var parts = c.Split(':');
-                        return (RoomTypeName: parts[0], RoomCount: int.Parse(parts[1]));
-                    })
-                    .ToList();
-
                 // Calculate total price and check availability
                 decimal totalPrice = 0m;
                 var bookingDateRanges = new List<BookingDateRange>();
 
-                foreach (var (RoomTypeName, RoomCount) in parsedCombination)
+                foreach (var roomCombination in model.ExactFitCombination.Split(';'))
                 {
-                    var rooms = await _context.Rooms
-                        .Where(r => r.HotelId == hotelId &&
-                                    r.RoomType.Name == RoomTypeName &&
-                                    !r.BookingDateRanges.Any(bdr =>
-                                        bdr.StartDate < checkOutDate && bdr.EndDate > checkInDate))
-                        .Take(RoomCount)
-                        .ToListAsync();
-
-                    if (rooms.Count < RoomCount)
+                    var roomParts = roomCombination.Split(':');
+                    if (roomParts.Length == 2)
                     {
-                        return BadRequest($"Недостатъчно свободни стаи за {RoomTypeName}.");
-                    }
+                        var RoomTypeName = roomParts[0];
+                        var RoomCount = int.Parse(roomParts[1]);
 
-                    totalPrice += rooms.Sum(r => r.Price) * (checkOutDate - checkInDate).Days;
+                        var rooms = await _context.Rooms
+                            .Where(r => r.HotelId == model.HotelId &&
+                                        r.RoomType.Name == RoomTypeName &&
+                                        !r.BookingDateRanges.Any(bdr =>
+                                            bdr.StartDate < model.CheckOutDate && bdr.EndDate > model.CheckInDate))
+                            .Take(RoomCount)
+                            .ToListAsync();
 
-                    // Add BookingDateRanges for each room
-                    foreach (var room in rooms)
-                    {
-                        bookingDateRanges.Add(new BookingDateRange
+                        if (rooms.Count < RoomCount)
                         {
-                            RoomId = room.RoomId,
-                            StartDate = checkInDate,
-                            EndDate = checkOutDate
-                        });
+                            return BadRequest($"Недостатъчно свободни стаи за {RoomTypeName}.");
+                        }
+
+                        totalPrice += rooms.Sum(r => r.Price) * (model.CheckOutDate - model.CheckInDate).Days;
+
+                        // Add BookingDateRanges for each room
+                        foreach (var room in rooms)
+                        {
+                            bookingDateRanges.Add(new BookingDateRange
+                            {
+                                RoomId = room.RoomId,
+                                StartDate = model.CheckInDate,
+                                EndDate = model.CheckOutDate
+                            });
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest("Невалиден формат на комбинацията от стаи.");
                     }
                 }
+
 
                 // Create and save the booking
                 var booking = new Booking
                 {
                     UserId = userId,
-                    HotelId = hotelId,
+                    HotelId = model.HotelId,
                     TotalPrice = totalPrice,
                     StatusId = 2, // Pending
+                    SpecialRequests = model.SpecialRequests
                 };
 
                 _context.Bookings.Add(booking);
@@ -405,12 +431,28 @@ namespace Easybook.Controllers
                 return NotFound();
             }
 
+            // Get the logged-in user
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return Unauthorized("Неуспешно идентифициране на потребителя.");
+            }
+
+            // Get the user's phone number if not already set
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user.FirstName != null || user.LastName != null)
+            {
+                var fullName = $"{user.FirstName?.FirstOrDefault().ToString().ToUpper()}{user.FirstName?.Substring(1) ?? ""} {user.LastName?.FirstOrDefault().ToString().ToUpper()}{user.LastName?.Substring(1) ?? ""}".Trim();
+
+                ViewBag.FullName = fullName;
+            }
+
+
             var hotel = booking.Hotel; // Retrieve hotel details for confirmation
-            var fullName = User.Identity.Name; // Assuming the name is stored here, adjust as needed
+            
 
             // Pass the data to the view
-            ViewBag.HotelId = hotel.HotelId;
-            ViewBag.FullName = fullName;
+            ViewBag.HotelName = hotel.Name;
 
             return View();
         }

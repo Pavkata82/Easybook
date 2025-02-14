@@ -1,41 +1,38 @@
-﻿@{
-    var hotelId = ViewBag.HotelId as int?;
-    var combination = ViewBag.Combination as List<(string RoomTypeName, int RoomCount)>;
-
-    if (hotelId == null || combination == null)
-    {
-        <h3 class="text-danger">Грешка: Данните за резервацията не са налични.</h3>
-        return;
-    }
-}
+﻿@model Easybook.Models.ViewModels.BookingViewModel
 
 <div class="container">
     <h3>Избрана комбинация</h3>
     <ul class="list-group mb-4">
-        @foreach (var (RoomTypeName, RoomCount) in combination)
-        {
-            <li class="list-group-item">
-                <strong>@RoomCount</strong> x @RoomTypeName
-            </li>
-        }
+        <ul>
+            @foreach (var room in Model.ExactFitCombination.Split(';'))
+            {
+                var roomParts = room.Split(':');
+                if (roomParts.Length == 2)
+                {
+                    <li>@roomParts[0] - @roomParts[1] стая(и)</li>
+                }
+            }
+        </ul>
     </ul>
 
     <h3>Данни за резервация</h3>
-    <form asp-action="Booking" method="post">
-        <input type="hidden" name="HotelId" value="@hotelId" />
-        <input type="hidden" name="Combination" value="@string.Join(";", combination.Select(c => $"{c.RoomTypeName}:{c.RoomCount}"))" />
-        <input type="hidden" name="CheckInDate" value="@Context.Request.Query["checkInDate"]" />
-        <input type="hidden" name="CheckOutDate" value="@Context.Request.Query["checkOutDate"]" />
+    <form asp-action="BookingPost" method="post">
+        <input type="hidden" name="HotelId" value="@Model.HotelId" />
+        <input type="hidden" name="ExactFitCombination" value="@Model.ExactFitCombination" />
+        <input type="hidden" name="CheckInDate" value="@Model.CheckInDate" />
+        <input type="hidden" name="CheckOutDate" value="@Model.CheckOutDate" />
 
         <div class="mb-3">
             <label for="phoneNumber" class="form-label">Телефонен номер</label>
-            <input type="tel" class="form-control" id="phoneNumber" name="PhoneNumber" />
+            <input type="tel" class="form-control" id="phoneNumber" name="PhoneNumber" value=@Model.PhoneNumber />
             <small class="text-muted">Попълнете, ако няма зададен номер в профила ви.</small>
+            <span asp-validation-for="PhoneNumber" class="text-danger d-block"></span>
         </div>
 
         <div class="mb-3">
             <label for="specialRequests" class="form-label">Специални изисквания (по желание)</label>
             <textarea class="form-control" id="specialRequests" name="SpecialRequests" rows="3"></textarea>
+            <span asp-validation-for="SpecialRequests" class="text-danger d-block"></span>
         </div>
 
         <button type="submit" class="btn btn-primary">Потвърди резервацията</button>
