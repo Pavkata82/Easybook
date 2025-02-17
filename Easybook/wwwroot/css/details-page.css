@@ -1,0 +1,167 @@
+﻿hotel-details {
+    background-color: #f8f9fa;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hotel-images img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    cursor: pointer;
+}
+
+.hotel-info {
+    margin-top: 2rem;
+}
+
+.hotel-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #333;
+}
+
+.room-types {
+    margin-top: 1rem;
+    color: #555;
+}
+
+.price {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #0056b3;
+}
+
+.combination {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.best-combinations {
+    background-color: #ffffff; /* Lighter background */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    flex: 1;
+}
+
+    .best-combinations h3 {
+        font-size: 1.5rem;
+        color: #007bff;
+        margin-bottom: 15px;
+    }
+
+    .best-combinations .card {
+        border: none;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .best-combinations .card-title {
+        font-weight: 500;
+        font-size: 1.2rem;
+        color: #333;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+.custom-combination {
+    background-color: #f9f9f9; /* Lighter and fresher background */
+    color: #333; /* Dark text for readability */
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    flex: 2;
+}
+
+    .custom-combination h3 {
+        font-size: 1.5rem;
+        color: #f39c12; /* Warm yellow accent */
+        margin-bottom: 20px;
+    }
+
+.room-card {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+    .room-card .room-type {
+        font-size: 1.2rem;
+        color: #333;
+    }
+
+    .room-card .room-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .room-card .btn {
+        background-color: #f39c12;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .room-card .btn:hover {
+            background-color: #e67e22; /* Darker yellow on hover */
+        }
+
+    .room-card .count {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .room-card .btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+    .form-group label {
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .form-group input {
+        background-color: #ffffff;
+        color: #333;
+        border: 1px solid #cccccc;
+        padding: 10px;
+        border-radius: 5px;
+        width: 100%;
+    }
+
+        .form-group input:focus {
+            background-color: #ffffff;
+            border-color: #007bff;
+            box-shadow: none;
+        }
+
+/* Media query for small screens */
+@media (max-width: 768px) {
+    .combination {
+        flex-direction: column; /* Stack the sections vertically */
+        gap: 15px; /* Adjust gap for better spacing */
+    }
+
+    .best-combinations, .custom-combination {
+        flex: none; /* Let each section take full width */
+        width: 100%; /* Make each section take full width on small screens */
+    }
+}

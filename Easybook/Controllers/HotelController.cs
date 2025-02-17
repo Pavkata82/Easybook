@@ -270,6 +270,44 @@ namespace Easybook.Controllers
             return View(hotelViewModel);
         }
 
+        public async Task<IActionResult> IsCustomCombinationPossible(int HotelId, Dictionary<string, int> roomTypeCounts, DateTime checkInDate, DateTime checkOutDate)
+        {
+            var hotel = await _context.Hotels
+                .Include(h => h.Rooms)
+                    .ThenInclude(r => r.RoomType)
+                .FirstOrDefaultAsync(m => m.HotelId == HotelId);
+
+            if (hotel == null)
+            {
+                return NotFound();
+            }
+
+            // Get available rooms for the specified dates
+            var availableRooms = GetAvailableRooms(hotel.Rooms.ToList(), checkInDate, checkOutDate);
+
+            // Create a dictionary to track the available rooms by type
+            var availableRoomCounts = availableRooms
+                .GroupBy(r => r.RoomType.Name)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Now we check if the available rooms meet the requirements in roomTypeCounts
+            foreach (var roomTypeCount in roomTypeCounts)
+            {
+                string roomTypeName = roomTypeCount.Key;
+                int requiredCount = roomTypeCount.Value;
+
+                // Check if there are enough available rooms of the required type
+                if (!availableRoomCounts.ContainsKey(roomTypeName) || availableRoomCounts[roomTypeName] < requiredCount)
+                {
+                    return RedirectToAction("Details", new { id = HotelId }); // Redirect with error if not enough rooms available
+                }
+            }
+
+            // If all checks passed, redirect to the booking page
+            return RedirectToAction("BookingGet", new { HotelId = HotelId, CustomCombination = string.Join(";", roomTypeCounts.Select(r => $"{r.Key}:{r.Value}")) });
+        }
+
+
         [Authorize]
         public async Task<IActionResult> BookingGet(BookingViewModel model)
         {

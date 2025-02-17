@@ -5,44 +5,7 @@
     ViewData["Title"] = Model.Name;
 }
 
-<style>
-    .hotel-details {
-        background-color: #f8f9fa;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .hotel-images img {
-        width: 100%;
-        max-height: 400px;
-        object-fit: cover;
-        margin-bottom: 1rem;
-        cursor: pointer;
-    }
-
-    .hotel-info {
-        margin-top: 2rem;
-    }
-
-    .hotel-description {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        color: #333;
-    }
-
-    .room-types {
-        margin-top: 1rem;
-        color: #555;
-    }
-
-    .price {
-        margin-top: 1rem;
-        font-size: 1.2rem;
-        font-weight: bold;
-        color: #0056b3;
-    }
-</style>
+<link rel="stylesheet" href="~/css/details-page.css" />
 
 <div class="container my-5">
     <div class="hotel-details">
@@ -97,37 +60,89 @@
                 Назад към списъка с хотели
             </a>
         </div>
+        <div class="combination">
+            <div class="best-combinations">
+                <h3>Най-добри комбинации</h3>
 
-        <div class="best-combinations d-flex flex-column">
-            <h3>Най-добри комбинации</h3>
-
-            @if (Model.ExactFitCombination != null && Model.ExactFitCombination.Any())
-            {
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Точна комбинация</h5>
-                        <ul>
-                            @foreach (var room in Model.ExactFitCombination.Split(';'))
-                            {
-                                var roomParts = room.Split(':');
-                                if (roomParts.Length == 2)
+                @if (Model.ExactFitCombination != null && Model.ExactFitCombination.Any())
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Точна комбинация</h5>
+                            <ul>
+                                @foreach (var room in Model.ExactFitCombination.Split(';'))
                                 {
-                                    <li>@roomParts[0] - @roomParts[1] стая(и)</li>
+                                    var roomParts = room.Split(':');
+                                    if (roomParts.Length == 2)
+                                    {
+                                        <li>@roomParts[0] - @roomParts[1] стая(и)</li>
+                                    }
                                 }
-                            }
-                        </ul>
-                        <form asp-action="BookingGet">
-                            <input hidden name="HotelId" value=@Model.HotelId />
-                            <input hidden name="ExactFitCombination" value="@Model.ExactFitCombination" />
-                            <input hidden name="CheckInDate" value=@Context.Request.Query["checkInDate"] />
-                            <input hidden name="CheckOutDate" value=@Context.Request.Query["checkOutDate"] />
-
-                            <button type="submit" class="btn btn-primary">Резервирай сега</button>
-                        </form>
+                            </ul>
+                            <form asp-action="BookingGet" method="GET">
+                                <input hidden name="HotelId" value=@Model.HotelId />
+                                <input hidden name="ExactFitCombination" value="@Model.ExactFitCombination" />
+                                <input hidden name="CheckInDate" value=@Context.Request.Query["checkInDate"] />
+                                <input hidden name="CheckOutDate" value=@Context.Request.Query["checkOutDate"] />
+                                <button type="submit" class="btn btn-primary w-100">Резервирай сега</button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
 
+            <div class="custom-combination">
+                <h3>Персонализирана комбинация</h3>
+                <form asp-action="CheckCustomCombination" method="POST">
+                    <input type="hidden" name="HotelId" value="@Model.HotelId" />
+                    <input type="hidden" name="CheckInDate" value="@Context.Request.Query["checkInDate"]" />
+                    <input type="hidden" name="CheckOutDate" value="@Context.Request.Query["checkOutDate"]" />
+
+                    <!-- Render Room Cards for each Room Type -->
+                    @foreach (var roomType in Model.RoomTypes)
+                    {
+                        <div class="room-card">
+                            <div class="room-type">
+                                <span>Брой стаи за тип @roomType:</span>
+                            </div>
+                            <div class="room-controls">
+                                <button type="button" class="btn" onclick="decreaseRoomCount('@roomType')">
+                                    <i class="bi bi-dash"></i> <!-- Bootstrap Icon: Dash -->
+                                </button>
+                                <span class="count" id="count-@roomType">0</span>
+                                <button type="button" class="btn" onclick="increaseRoomCount('@roomType')">
+                                    <i class="bi bi-plus"></i> <!-- Bootstrap Icon: Plus -->
+                                </button>
+                            </div>
+                            <input type="hidden" name="RoomTypeCounts[@roomType]" id="input-@roomType" value="0" />
+                        </div>
+                    }
+
+                    <button type="submit" class="btn btn-warning w-100">Проверете наличността</button>
+                </form>
+            </div>
         </div>
+
+
     </div>
 </div>
+
+<script>
+    function increaseRoomCount(roomType) {
+        var countElement = document.getElementById("count-" + roomType);
+        var inputElement = document.getElementById("input-" + roomType);
+        var currentCount = parseInt(countElement.innerText);
+        countElement.innerText = currentCount + 1;
+        inputElement.value = currentCount + 1;
+    }
+
+    function decreaseRoomCount(roomType) {
+        var countElement = document.getElementById("count-" + roomType);
+        var inputElement = document.getElementById("input-" + roomType);
+        var currentCount = parseInt(countElement.innerText);
+        if (currentCount > 0) {
+            countElement.innerText = currentCount - 1;
+            inputElement.value = currentCount - 1;
+        }
+    }
+</script>
