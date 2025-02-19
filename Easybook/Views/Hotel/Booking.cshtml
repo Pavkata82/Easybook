@@ -4,7 +4,7 @@
     <h3>Избрана комбинация</h3>
     <ul class="list-group mb-4">
         <ul>
-            @foreach (var room in Model.ExactFitCombination.Split(';'))
+            @foreach (var room in Model.SelectedCombination.Split(';'))
             {
                 var roomParts = room.Split(':');
                 if (roomParts.Length == 2)
@@ -18,7 +18,7 @@
     <h3>Данни за резервация</h3>
     <form asp-action="BookingPost" method="post">
         <input type="hidden" name="HotelId" value="@Model.HotelId" />
-        <input type="hidden" name="ExactFitCombination" value="@Model.ExactFitCombination" />
+        <input type="hidden" name="SelectedCombination" value="@Model.SelectedCombination" />
         <input type="hidden" name="CheckInDate" value="@Model.CheckInDate" />
         <input type="hidden" name="CheckOutDate" value="@Model.CheckOutDate" />
 

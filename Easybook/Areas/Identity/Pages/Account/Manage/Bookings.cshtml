@@ -1,0 +1,45 @@
+﻿@page
+@model Easybook.Areas.Identity.Pages.Account.Manage.BookingsModel
+@{
+    ViewData["Title"] = "Профил";
+    Layout = "~/Areas/Identity/Pages/Shared/_ManageLayout.cshtml";
+    ViewData["ActivePage"] = ManageNavPages.Bookings;
+}
+
+
+<h2>My Bookings</h2>
+
+@if (Model.Bookings.Any())
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Hotel</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Status</th>
+                <th>Total Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in Model.Bookings)
+            {
+                <tr>
+                    <td>@booking.Hotel.Name</td>
+                    <td>@booking.BookingDateRanges.Min(d => d.StartDate).ToShortDateString()</td>
+                    <td>@booking.BookingDateRanges.Max(d => d.EndDate).ToShortDateString()</td>
+                    <td>@booking.Status.Name</td>
+                    <td>@booking.TotalPrice.ToString("C")</td>
+                    <td>
+                        <a asp-page="./BookingDetails" asp-route-id="@booking.BookingId" class="btn btn-info btn-sm">View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>You have no bookings yet.</p>
+}

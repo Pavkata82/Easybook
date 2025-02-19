@@ -10,7 +10,7 @@ namespace Easybook.Models.ViewModels
         public int HotelId { get; set; }
 
         [Required]
-        public string ExactFitCombination { get; set; }
+        public string SelectedCombination { get; set; }
 
         [StringLength(100, ErrorMessage = "Това поле не може да бъде по-дълго от 100 символа.")]
         public string? SpecialRequests { get; set; } = "";

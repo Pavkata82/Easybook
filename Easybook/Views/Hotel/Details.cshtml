@@ -81,7 +81,7 @@
                             </ul>
                             <form asp-action="BookingGet" method="GET">
                                 <input hidden name="HotelId" value=@Model.HotelId />
-                                <input hidden name="ExactFitCombination" value="@Model.ExactFitCombination" />
+                                <input hidden name="SelectedCombination" value="@Model.ExactFitCombination" />
                                 <input hidden name="CheckInDate" value=@Context.Request.Query["checkInDate"] />
                                 <input hidden name="CheckOutDate" value=@Context.Request.Query["checkOutDate"] />
                                 <button type="submit" class="btn btn-primary w-100">Резервирай сега</button>
@@ -93,10 +93,20 @@
 
             <div class="custom-combination">
                 <h3>Персонализирана комбинация</h3>
-                <form asp-action="CheckCustomCombination" method="POST">
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
+
+                <form asp-action="IsCustomCombinationPossible" method="POST">
                     <input type="hidden" name="HotelId" value="@Model.HotelId" />
                     <input type="hidden" name="CheckInDate" value="@Context.Request.Query["checkInDate"]" />
                     <input type="hidden" name="CheckOutDate" value="@Context.Request.Query["checkOutDate"]" />
+                    <input type="hidden" name="Adults" value="@Context.Request.Query["adults"]" />
+                    <input type="hidden" name="Kids" value="@Context.Request.Query["kids"]" />
 
                     <!-- Render Room Cards for each Room Type -->
                     @foreach (var roomType in Model.RoomTypes)

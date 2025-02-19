@@ -270,7 +270,8 @@ namespace Easybook.Controllers
             return View(hotelViewModel);
         }
 
-        public async Task<IActionResult> IsCustomCombinationPossible(int HotelId, Dictionary<string, int> roomTypeCounts, DateTime checkInDate, DateTime checkOutDate)
+        [HttpPost]
+        public async Task<IActionResult> IsCustomCombinationPossible(int HotelId, Dictionary<string, int> roomTypeCounts, SearchViewModel searchViewModel)
         {
             var hotel = await _context.Hotels
                 .Include(h => h.Rooms)
@@ -283,7 +284,7 @@ namespace Easybook.Controllers
             }
 
             // Get available rooms for the specified dates
-            var availableRooms = GetAvailableRooms(hotel.Rooms.ToList(), checkInDate, checkOutDate);
+            var availableRooms = GetAvailableRooms(hotel.Rooms.ToList(), searchViewModel.CheckInDate, searchViewModel.CheckOutDate);
 
             // Create a dictionary to track the available rooms by type
             var availableRoomCounts = availableRooms
@@ -299,12 +300,27 @@ namespace Easybook.Controllers
                 // Check if there are enough available rooms of the required type
                 if (!availableRoomCounts.ContainsKey(roomTypeName) || availableRoomCounts[roomTypeName] < requiredCount)
                 {
-                    return RedirectToAction("Details", new { id = HotelId }); // Redirect with error if not enough rooms available
+                    TempData["ErrorMessage"] = "Избраната комбинация от стаи не е налична. Моля, изберете друга.";
+
+                    return RedirectToAction("Details", new
+                    {
+                        id = HotelId,
+                        CheckInDate = searchViewModel.CheckInDate,
+                        CheckOutDate = searchViewModel.CheckOutDate,
+                        Adults = searchViewModel.Adults,
+                        Kids = searchViewModel.Kids
+                    });
                 }
             }
 
             // If all checks passed, redirect to the booking page
-            return RedirectToAction("BookingGet", new { HotelId = HotelId, CustomCombination = string.Join(";", roomTypeCounts.Select(r => $"{r.Key}:{r.Value}")) });
+            return RedirectToAction("BookingGet", new 
+            { 
+                HotelId = HotelId,
+                SelectedCombination = string.Join(";", roomTypeCounts.Select(r => $"{r.Key}:{r.Value}")),
+                CheckInDate = searchViewModel.CheckInDate,
+                CheckOutDate = searchViewModel.CheckOutDate 
+            });
         }
 
 
@@ -312,12 +328,12 @@ namespace Easybook.Controllers
         public async Task<IActionResult> BookingGet(BookingViewModel model)
         {
 
-            if (model.ExactFitCombination == null)
+            if (model.SelectedCombination == null)
             {
                 return BadRequest("Комбинацията не е предоставена.");
             }
 
-            if (!model.ExactFitCombination.Any())
+            if (!model.SelectedCombination.Any())
             {
                 return BadRequest("Комбинацията не съдържа валидни стаи.");
             }
@@ -383,7 +399,7 @@ namespace Easybook.Controllers
                 decimal totalPrice = 0m;
                 var bookingDateRanges = new List<BookingDateRange>();
 
-                foreach (var roomCombination in model.ExactFitCombination.Split(';'))
+                foreach (var roomCombination in model.SelectedCombination.Split(';'))
                 {
                     var roomParts = roomCombination.Split(':');
                     if (roomParts.Length == 2)
