@@ -113,7 +113,7 @@ namespace Easybook.Controllers
         }
 
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             var viewModel = new HotelCreateViewModel

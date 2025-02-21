@@ -1,45 +1,63 @@
 ﻿@page
 @model Easybook.Areas.Identity.Pages.Account.Manage.BookingsModel
 @{
-    ViewData["Title"] = "Профил";
+    ViewData["Title"] = "Резервации";
     Layout = "~/Areas/Identity/Pages/Shared/_ManageLayout.cshtml";
     ViewData["ActivePage"] = ManageNavPages.Bookings;
 }
 
+<div class="container mt-4">
+    <div class="card shadow-sm p-4">
+        <h2 class="mb-4 text-primary">📅 Моите резервации</h2>
 
-<h2>My Bookings</h2>
-
-@if (Model.Bookings.Any())
-{
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Hotel</th>
-                <th>Check-in</th>
-                <th>Check-out</th>
-                <th>Status</th>
-                <th>Total Price</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var booking in Model.Bookings)
-            {
-                <tr>
-                    <td>@booking.Hotel.Name</td>
-                    <td>@booking.BookingDateRanges.Min(d => d.StartDate).ToShortDateString()</td>
-                    <td>@booking.BookingDateRanges.Max(d => d.EndDate).ToShortDateString()</td>
-                    <td>@booking.Status.Name</td>
-                    <td>@booking.TotalPrice.ToString("C")</td>
-                    <td>
-                        <a asp-page="./BookingDetails" asp-route-id="@booking.BookingId" class="btn btn-info btn-sm">View</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>You have no bookings yet.</p>
-}
+        @if (Model.Bookings.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>🏨 Хотел</th>
+                            <th>📆 Настаняване</th>
+                            <th>📆 Напускане</th>
+                            <th>📌 Статус</th>
+                            <th>💰 Обща цена</th>
+                            <th>⚡ Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var booking in Model.Bookings)
+                        {
+                            <tr>
+                                <td>@booking.Hotel.Name</td>
+                                <td>@booking.BookingDateRanges.Min(d => d.StartDate).ToShortDateString()</td>
+                                <td>@booking.BookingDateRanges.Max(d => d.EndDate).ToShortDateString()</td>
+                                <td>
+                                    <span class="badge
+                                        @(booking.Status.Name == "Pending" ? "bg-warning" :
+                                          booking.Status.Name == "Cancelled" ? "bg-danger" :
+                                          "bg-success")">
+                                        @booking.Status.Name
+                                    </span>
+                                </td>
+                                <td><strong>@booking.TotalPrice.ToString("C")</strong></td>
+                                <td>
+                                    <a asp-page="./BookingDetails" asp-route-id="@booking.BookingId" class="btn btn-outline-primary btn-sm">
+                                        🔍 Преглед
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center mt-4">
+                <img src="https://cdn-icons-png.flaticon.com/512/4076/4076406.png" alt="Няма резервации" width="150" class="mb-3">
+                <h4 class="text-muted">Все още нямате резервации.</h4>
+                <a asp-area="Hotels" asp-page="/Browse" class="btn btn-primary mt-3">Разгледайте хотели 🏨</a>
+            </div>
+        }
+    </div>
+</div>

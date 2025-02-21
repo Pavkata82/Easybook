@@ -1,0 +1,95 @@
+﻿@page "{id:int}"
+@model Easybook.Areas.Identity.Pages.Account.Manage.BookingDetailsModel
+@{
+    ViewData["Title"] = "Детайли за резервация";
+    Layout = "~/Areas/Identity/Pages/Shared/_ManageLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm p-4">
+        <h2 class="mb-4 text-primary">🛎️ Детайли за резервация</h2>
+
+        @if (Model.Booking != null)
+        {
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="text-secondary">🏨 Хотел</h4>
+                    <p><strong>@Model.Booking.Hotel.Name</strong></p>
+                    <p><i class="fas fa-map-marker-alt"></i> @Model.Booking.Hotel.Address, @Model.Booking.Hotel.City, @Model.Booking.Hotel.Country</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h4 class="text-secondary">📆 Дати</h4>
+                    <p><strong>Настаняване:</strong> @Model.Booking.BookingDateRanges.Min(d => d.StartDate).ToShortDateString()</p>
+                    <p><strong>Напускане:</strong> @Model.Booking.BookingDateRanges.Max(d => d.EndDate).ToShortDateString()</p>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>📌 Статус</h5>
+                    <span class="badge
+                                    @(Model.Booking.Status.Name == "Pending" ? "bg-warning" :
+                                        Model.Booking.Status.Name == "Cancelled" ? "bg-danger" :
+                                        "bg-success")">
+                        @Model.Booking.Status.Name
+                    </span>
+                </div>
+                <div class="col-md-4">
+                    <h5>💰 Обща цена</h5>
+                    <p class="fw-bold text-success">@Model.Booking.TotalPrice.ToString("C")</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>📜 Специални заявки</h5>
+                    <p>@(string.IsNullOrEmpty(Model.Booking.SpecialRequests) ? "Няма специални заявки" : Model.Booking.SpecialRequests)</p>
+                </div>
+            </div>
+
+            <hr />
+
+            <h4 class="mt-4">🛏️ Стаи в резервацията</h4>
+            @if (Model.Booking.BookingDateRanges.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>#</th>
+                                <th>🏠 Стая</th>
+                                <th>📆 От</th>
+                                <th>📆 До</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var room in Model.Booking.BookingDateRanges)
+                            {
+                                <tr>
+                                    <td>@room.Room.RoomId</td>
+                                    <td>@room.Room.RoomType</td>
+                                    <td>@room.StartDate.ToShortDateString()</td>
+                                    <td>@room.EndDate.ToShortDateString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">Няма резервирани стаи.</p>
+            }
+
+            <div class="mt-4">
+                <a asp-page="./Bookings" class="btn btn-outline-secondary">⬅ Назад към резервациите</a>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-danger text-center">
+                <p>❌ Резервацията не беше намерена!</p>
+                <a asp-page="./Bookings" class="btn btn-outline-danger">⬅ Върни се назад</a>
+            </div>
+        }
+    </div>
+</div>

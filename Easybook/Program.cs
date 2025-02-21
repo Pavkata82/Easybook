@@ -11,7 +11,7 @@ namespace Easybook
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +53,8 @@ namespace Easybook
 
             var app = builder.Build();
 
+            await SeedData.Initialize(app.Services);
+
             // Restrict Identity pages middleware
             app.Use(async (context, next) =>
             {
@@ -92,6 +94,51 @@ namespace Easybook
             app.MapRazorPages();
 
             app.Run();
+        }
+    }
+}
+
+public static class SeedData
+{
+    public static async Task Initialize(IServiceProvider serviceProvider)
+    {
+        using (var scope = serviceProvider.CreateScope())
+        {
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            // Ensure database is migrated
+            await context.Database.MigrateAsync();
+
+            // Create Admin Role if it does not exist
+            if (!await roleManager.RoleExistsAsync(Roles.Admin))
+            {
+                await roleManager.CreateAsync(new IdentityRole(Roles.Admin));
+            }
+
+            // Create Default Admin User if not exists
+            string adminEmail = "admin@easybook.com";
+            string adminPassword = "123123"; // Change for production
+
+            if (await userManager.FindByEmailAsync(adminEmail) == null)
+            {
+                var adminUser = new ApplicationUser
+                {
+                    FirstName = "Admin",
+                    LastName = "Admin",
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    EmailConfirmed = true
+                };
+
+                var result = await userManager.CreateAsync(adminUser, adminPassword);
+
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, Roles.Admin);
+                }
+            }
         }
     }
 }
