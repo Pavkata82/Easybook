@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Welcome to the Admin Panel</h2>
+<p>Use the menu to manage users, bookings, and settings.</p>
+
+<ul>
+    <li><a asp-area="Admin" asp-controller="Admin" asp-action="ManageUsers">Manage Users</a></li>
+    <li><a asp-area="Admin" asp-controller="Admin" asp-action="ManageBookings">Manage Bookings</a></li>
+</ul>
