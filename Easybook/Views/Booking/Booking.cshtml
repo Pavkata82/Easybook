@@ -1,0 +1,99 @@
+﻿@model Easybook.Models.ViewModels.BookingViewModel
+
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0"><i class="bi bi-list-check"></i> Избрана Комбинация</h3>
+                </div>
+                <div class="card-body py-2">
+                    <ul class="list-group mb-3">
+                        @foreach (var room in Model.SelectedCombination.Split(';'))
+                        {
+                            var roomParts = room.Split(':');
+                            if (roomParts[1] != "0" && roomParts.Length == 2)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                    <div>
+                                        <i class="bi bi-door-closed text-primary"></i>
+                                        <strong>@roomParts[0]</strong> - @roomParts[1] стая(и)
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">@roomParts[1] x </span>
+                                        <span class="badge bg-success rounded-pill px-2 py-1">
+                                            @(Model.RoomTypesAndPrices.ContainsKey(roomParts[0]) ?
+                                                Model.RoomTypesAndPrices[roomParts[0]].ToString("C", new System.Globalization.CultureInfo("bg-BG"))
+                                                : "Цена не е намерена")
+                                        </span>
+                                    </div>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                    <div class="text-center mb-3">
+                        <h5 class="fw-bold text-secondary">
+                            <i class="bi bi-calendar-event"></i>
+                            @((Model.CheckOutDate - Model.CheckInDate).Days) Дена
+                        </h5>
+                        <p class="text-muted">
+                            <i class="bi bi-calendar-range"></i>
+                            @Model.CheckInDate.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("bg-BG"))
+                            -
+                            @Model.CheckOutDate.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("bg-BG"))
+                        </p>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded">
+                        <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Обща стойност:</h5>
+                        <h5 class="fw-bold text-success mb-0">
+                            @Model.TotalPrice.ToString("C", new System.Globalization.CultureInfo("bg-BG"))
+                        </h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3 shadow-sm border-0">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Данни за Резервация</h5>
+                </div>
+                <div class="card-body py-2">
+                    <form asp-action="BookingPost" method="post">
+                        <input type="hidden" name="HotelId" value="@Model.HotelId" />
+                        <input type="hidden" name="SelectedCombination" value="@Model.SelectedCombination" />
+                        <input type="hidden" name="CheckInDate" value="@Model.CheckInDate" />
+                        <input type="hidden" name="CheckOutDate" value="@Model.CheckOutDate" />
+
+                        <div class="mb-3">
+                            <label for="phoneNumber" class="form-label">
+                                <i class="bi bi-telephone-fill"></i> Телефонен номер
+                            </label>
+                            <input type="tel" class="form-control form-control-sm border shadow-sm" id="phoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" />
+                            <small class="text-muted">Попълнете, ако няма зададен номер в профила ви.</small>
+                            <span asp-validation-for="PhoneNumber" class="text-danger d-block"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="specialRequests" class="form-label">
+                                <i class="bi bi-chat-dots-fill"></i> Специални изисквания (по желание)
+                            </label>
+                            <textarea class="form-control form-control-sm border shadow-sm" id="specialRequests" name="SpecialRequests" rows="2"></textarea>
+                            <span asp-validation-for="SpecialRequests" class="text-danger d-block"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm shadow-sm" onclick="window.history.back();">
+                                <i class="bi bi-arrow-left-circle"></i> Назад
+                            </button>
+                            <button type="submit" class="btn btn-lg btn-success px-4 shadow-sm fw-bold">
+                                <i class="bi bi-check-circle"></i> Потвърди резервацията
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,29 @@
+﻿@{
+    var HotelName = ViewBag.HotelName as string;
+    var FullName = ViewBag.FullName as string;
+}
+
+<div class="container my-5">
+    <div class="text-center">
+        <h2 class="mb-4 text-success">Успешна Резервация</h2>
+
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading">Благодарим Ви, @FullName!</h4>
+            <p>Вашата резервация е успешно направена. Очакваме Ви в нашия хотел.</p>
+            <hr>
+            <p class="mb-0">Хотел: <strong>@HotelName</strong></p>
+        </div>
+
+        <div class="my-4">
+            <h5>Резервационни Детайли:</h5>
+            <ul class="list-group">
+                <li class="list-group-item">Име: <strong>@FullName</strong></li>
+                <li class="list-group-item">Хотел: <strong>@HotelName</strong></li>
+                <li class="list-group-item">Дата на резервация: <strong>@DateTime.Now.ToString("dd MMM yyyy")</strong></li>
+                <li class="list-group-item">Резервацията е потвърдена успешно!</li>
+            </ul>
+        </div>
+
+        <a href="/" class="btn btn-primary btn-lg mt-3">Върнете се към началната страница</a>
+    </div>
+</div>

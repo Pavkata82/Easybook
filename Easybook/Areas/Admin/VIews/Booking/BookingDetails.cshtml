@@ -1,0 +1,87 @@
+﻿@model Easybook.Areas.Admin.Models.ViewModels.BookingDetailsViewModel
+
+@{
+    ViewData["Title"] = "Детайли за резервация";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="text-center my-4"><i class="bi bi-receipt"></i> Детайли за резервация</h2>
+
+<div class="container">
+    <!-- Карта с информация за резервацията -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5><i class="bi bi-tag"></i> Номер на резервация: @Model.BookingId</h5>
+            <span class="badge bg-@(Model.Status == "Approved" ? "success" : "warning") fs-6">
+                <i class="bi bi-info-circle"></i> @Model.Status
+            </span>
+        </div>
+        <div class="card-body">
+            <!-- Информация за клиента -->
+            <div class="mb-3">
+                <h4><i class="bi bi-person-circle"></i> Информация за клиента</h4>
+                <p><strong>Име:</strong> @Model.CustomerName</p>
+            </div>
+
+            <!-- Информация за хотела и цената -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h4><i class="bi bi-building"></i> Информация за хотела</h4>
+                    <p><strong>Хотел:</strong> @Model.HotelName</p>
+                </div>
+                <div class="col-md-6">
+                    <h4><i class="bi bi-cash-coin"></i> Платена сума</h4>
+                    <p><strong>Обща цена:</strong> <span class="text-success">@Model.TotalPrice.ToString("C")</span></p>
+                </div>
+            </div>
+
+            <!-- Период на резервацията -->
+            <div class="mb-3">
+                <h4><i class="bi bi-calendar-event"></i> Период на резервацията</h4>
+                <p>
+                    <i class="bi bi-calendar-check"></i> Настаняване: <strong>@Model.CheckInDate.ToString("dd/MM/yyyy")</strong> <br>
+                    <i class="bi bi-calendar-x"></i> Напускане: <strong>@Model.CheckOutDate.ToString("dd/MM/yyyy")</strong>
+                </p>
+            </div>
+
+            <!-- Информация за стаите -->
+            <div class="mb-3">
+                <h4><i class="bi bi-door-closed"></i> Информация за стаите</h4>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="bi bi-door-open"></i> Тип стая</th>
+                                <th><i class="bi bi-boxes"></i> Брой</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var roomDetail in Model.RoomDetails)
+                            {
+                                <tr>
+                                    <td>@roomDetail.RoomType</td>
+                                    <td><span class="badge bg-secondary">@roomDetail.Quantity</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Специални изисквания -->
+            @if (!string.IsNullOrEmpty(Model.SpecialRequests))
+            {
+                <div class="mb-3">
+                    <h4><i class="bi bi-chat-left-text"></i> Специални изисквания</h4>
+                    <p class="text-muted">@Model.SpecialRequests</p>
+                </div>
+            }
+        </div>
+
+        <div class="card-footer text-center">
+            <a href="@Url.Action("ManageBookings", "Booking", new { area = "Admin" })" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Обратно към резервациите
+            </a>
+        </div>
+    </div>
+</div>

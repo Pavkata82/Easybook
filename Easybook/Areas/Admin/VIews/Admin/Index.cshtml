@@ -3,9 +3,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
         <!-- Sidebar -->
         <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar text-white">
             <div class="position-sticky p-3">
@@ -17,8 +17,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="Admin" asp-controller="Admin" asp-action="ManageBookings">
+                        <a class="nav-link text-white" asp-area="Admin" asp-controller="Booking" asp-action="ManageBookings">
                             <i class="bi bi-calendar-check"></i> Manage Bookings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" asp-area="Admin" asp-controller="Hotel" asp-action="Create">
+                            <i class="bi bi-building-add"></i> Create hotel
                         </a>
                     </li>
                     <li class="nav-item">

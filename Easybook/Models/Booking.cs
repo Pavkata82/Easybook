@@ -28,6 +28,9 @@ namespace Easybook.Models
         // Add TotalPrice field
         [Required]
         public decimal TotalPrice { get; set; }
+
+        [Required]
+        public DateTime DateOfBooking { get; set; } = DateTime.UtcNow;
     }
 
 }

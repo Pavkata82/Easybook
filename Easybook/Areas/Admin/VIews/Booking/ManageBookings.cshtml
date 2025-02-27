@@ -56,13 +56,13 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="@Url.Action("Edit", "Admin", new { id = booking.BookingId })" class="btn btn-primary btn-sm" title="Edit">
+                                    <a href="@Url.Action("Edit", "Booking", new { id = booking.BookingId })" class="btn btn-primary btn-sm" title="Edit">
                                         <i class="bi bi-pencil"></i> Edit
                                     </a>
-                                    <a href="@Url.Action("Delete", "Admin", new { id = booking.BookingId })" class="btn btn-danger btn-sm" title="Cancel">
+                                    <a href="@Url.Action("Delete", "Booking", new { id = booking.BookingId })" class="btn btn-danger btn-sm" title="Cancel">
                                         <i class="bi bi-trash"></i> Cancel
                                     </a>
-                                    <a href="@Url.Action("BookingDetails", "Admin", new { area = "Admin", id = booking.BookingId })" class="btn btn-info btn-sm" title="View Details">
+                                    <a href="@Url.Action("BookingDetails", "Booking", new { area = "Admin", id = booking.BookingId })" class="btn btn-info btn-sm" title="View Details">
                                         <i class="bi bi-eye"></i> View Details
                                     </a>
                                 </td>

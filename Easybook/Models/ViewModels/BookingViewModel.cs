@@ -23,6 +23,10 @@ namespace Easybook.Models.ViewModels
 
         [ValidPhoneNumber(ErrorMessage = "Невалиден телефонен номер.")]
         public string? PhoneNumber { get; set; }
+
+        public Dictionary<string, decimal> RoomTypesAndPrices { get; set; }
+
+        public decimal TotalPrice { get; set; }
     }
 
     public class ValidPhoneNumberAttribute : ValidationAttribute

@@ -79,7 +79,7 @@
                                     }
                                 }
                             </ul>
-                            <form asp-action="BookingGet" method="GET">
+                            <form asp-action="BookingGet" asp-controller="Booking" method="GET">
                                 <input hidden name="HotelId" value=@Model.HotelId />
                                 <input hidden name="SelectedCombination" value="@Model.ExactFitCombination" />
                                 <input hidden name="CheckInDate" value=@Context.Request.Query["checkInDate"] />
