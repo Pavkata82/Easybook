@@ -60,25 +60,43 @@ namespace Easybook.Areas.Admin.Controllers
                 SpecialRequests = booking.SpecialRequests,
                 CheckInDate = booking.BookingDateRanges.Select(bdr => bdr.StartDate).First(),
                 CheckOutDate = booking.BookingDateRanges.Select(bdr => bdr.EndDate).First(),
-                RoomDetails = new List<(string RoomType, int Quantity)>()
+                RoomDetails = new List<RoomDetailViewModel>()
             };
 
-            // Populate the RoomDetails with RoomType and Quantity
+            // Fetch room types and their prices
+            var roomPrices = _context.Rooms
+                .Where(r => r.HotelId == booking.HotelId)
+                .GroupBy(r => r.RoomType.Name)
+                .ToDictionary(g => g.Key, g => g.FirstOrDefault().Price);
+
+            // Populate the RoomDetails with RoomType, Quantity, Price, and Total Price for the entire stay
             var roomGroups = booking.BookingDateRanges
                 .GroupBy(br => br.Room.RoomType.Name)
                 .Select(group => new
                 {
                     RoomType = group.Key,
-                    Quantity = group.Count()
+                    Quantity = group.Count(),
+                    Price = roomPrices.ContainsKey(group.Key) ? roomPrices[group.Key] : 0m
                 })
                 .ToList();
 
             foreach (var roomGroup in roomGroups)
             {
-                bookingDetailsViewModel.RoomDetails.Add((roomGroup.RoomType, roomGroup.Quantity));
+                var totalRoomPrice = roomGroup.Price * roomGroup.Quantity * bookingDetailsViewModel.NumberOfDays;
+
+                // Add the RoomDetailViewModel to RoomDetails
+                bookingDetailsViewModel.RoomDetails.Add(new RoomDetailViewModel
+                {
+                    RoomType = roomGroup.RoomType,
+                    Quantity = roomGroup.Quantity,
+                    RoomPrice = roomGroup.Price,
+                    TotalPrice = totalRoomPrice
+                });
             }
 
             return View(bookingDetailsViewModel);
         }
+
+
     }
 }

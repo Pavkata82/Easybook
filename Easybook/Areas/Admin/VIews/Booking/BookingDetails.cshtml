@@ -1,14 +1,8 @@
 ﻿@model Easybook.Areas.Admin.Models.ViewModels.BookingDetailsViewModel
 
-@{
-    ViewData["Title"] = "Детайли за резервация";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-}
-
 <h2 class="text-center my-4"><i class="bi bi-receipt"></i> Детайли за резервация</h2>
 
 <div class="container">
-    <!-- Карта с информация за резервацията -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5><i class="bi bi-tag"></i> Номер на резервация: @Model.BookingId</h5>
@@ -17,34 +11,31 @@
             </span>
         </div>
         <div class="card-body">
-            <!-- Информация за клиента -->
             <div class="mb-3">
                 <h4><i class="bi bi-person-circle"></i> Информация за клиента</h4>
                 <p><strong>Име:</strong> @Model.CustomerName</p>
             </div>
 
-            <!-- Информация за хотела и цената -->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <h4><i class="bi bi-building"></i> Информация за хотела</h4>
+                    <h4><i class="bi bi-buildings"></i> Информация за хотела</h4>
                     <p><strong>Хотел:</strong> @Model.HotelName</p>
                 </div>
                 <div class="col-md-6">
                     <h4><i class="bi bi-cash-coin"></i> Платена сума</h4>
-                    <p><strong>Обща цена:</strong> <span class="text-success">@Model.TotalPrice.ToString("C")</span></p>
+                    <p><strong>Обща цена:</strong> <span class="text-success">@Model.TotalPrice.ToString("C", new System.Globalization.CultureInfo("bg-BG"))</span></p>
                 </div>
             </div>
 
-            <!-- Период на резервацията -->
             <div class="mb-3">
                 <h4><i class="bi bi-calendar-event"></i> Период на резервацията</h4>
                 <p>
                     <i class="bi bi-calendar-check"></i> Настаняване: <strong>@Model.CheckInDate.ToString("dd/MM/yyyy")</strong> <br>
                     <i class="bi bi-calendar-x"></i> Напускане: <strong>@Model.CheckOutDate.ToString("dd/MM/yyyy")</strong>
                 </p>
+                <p><strong>Брой дни:</strong> @Model.NumberOfDays</p>
             </div>
 
-            <!-- Информация за стаите -->
             <div class="mb-3">
                 <h4><i class="bi bi-door-closed"></i> Информация за стаите</h4>
                 <div class="table-responsive">
@@ -53,6 +44,8 @@
                             <tr>
                                 <th><i class="bi bi-door-open"></i> Тип стая</th>
                                 <th><i class="bi bi-boxes"></i> Брой</th>
+                                <th><i class="bi bi-cash-coin"></i> Цена на стая</th>
+                                <th><i class="bi bi-cash-stack"></i> Обща цена</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -61,6 +54,8 @@
                                 <tr>
                                     <td>@roomDetail.RoomType</td>
                                     <td><span class="badge bg-secondary">@roomDetail.Quantity</span></td>
+                                    <td><span class="text-success">@roomDetail.RoomPrice.ToString("C", new System.Globalization.CultureInfo("bg-BG"))</span></td>
+                                    <td><span class="text-success">@roomDetail.TotalPrice.ToString("C", new System.Globalization.CultureInfo("bg-BG"))</span></td>
                                 </tr>
                             }
                         </tbody>
@@ -68,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- Специални изисквания -->
             @if (!string.IsNullOrEmpty(Model.SpecialRequests))
             {
                 <div class="mb-3">

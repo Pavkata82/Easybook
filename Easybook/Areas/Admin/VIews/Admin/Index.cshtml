@@ -1,60 +1,93 @@
 ﻿@{
     ViewData["Title"] = "Admin Dashboard";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["ActivePage"] = "Index";
+    var bookingsData = ViewData["BookingsData"] as List<dynamic>;
 }
-
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar text-white">
-            <div class="position-sticky p-3">
-                <h4 class="text-center my-3">Admin Panel</h4>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="Admin" asp-controller="Admin" asp-action="ManageUsers">
-                            <i class="bi bi-people"></i> Manage Users
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="Admin" asp-controller="Booking" asp-action="ManageBookings">
-                            <i class="bi bi-calendar-check"></i> Manage Bookings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" asp-area="Admin" asp-controller="Hotel" asp-action="Create">
-                            <i class="bi bi-building-add"></i> Create hotel
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="#">
-                            <i class="bi bi-gear"></i> Settings
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-
-
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card shadow-sm p-3">
-                        <h5 class="card-title">Users Overview</h5>
-                        <p class="card-text">Manage user accounts and permissions.</p>
-                        <a asp-area="Admin" asp-controller="Admin" asp-action="ManageUsers" class="btn btn-outline-primary">Go to Users</a>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="card shadow-sm p-3">
-                        <h5 class="card-title">Bookings Overview</h5>
-                        <p class="card-text">Manage and review customer bookings.</p>
-                        <a asp-area="Admin" asp-controller="Admin" asp-action="ManageBookings" class="btn btn-outline-primary">Go to Bookings</a>
-                    </div>
-                </div>
-            </div>
-        </main>
+        <div class="col-md-12">
+            <h3>Bookings for the Year</h3>
+            <canvas id="bookingsChart" style="height: 300px; width: 100%;"></canvas>
+        </div>
     </div>
 </div>
+
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Serialize the bookings data passed from ViewData
+    var bookingsData = @Html.Raw(Json.Serialize(ViewData["BookingsData"]));
+
+    // Check if the data is properly formatted
+    if (Array.isArray(bookingsData)) {
+        // Month names for the x-axis
+        var monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        // Extract months and booking counts
+        var months = bookingsData.map(function (item) {
+            return monthNames[item.month - 1]; // Adjust for 0-based index
+        });
+
+        var bookingCounts = bookingsData.map(function (item) {
+            return item.bookingCount;
+        });
+
+        // Create the data for the chart
+        var chartData = {
+            labels: months,
+            datasets: [{
+                label: 'Bookings per Month',
+                data: bookingCounts,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)', // Background color
+                borderColor: 'rgba(54, 162, 235, 1)', // Border color
+                borderWidth: 1
+            }]
+        };
+
+        // Chart.js configuration
+        var ctx = document.getElementById('bookingsChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',  // Chart type (bar, line, etc.)
+            data: chartData,
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true, // Ensure the X-axis starts at 0
+                        title: {
+                            display: true,
+                            text: 'Month'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true, // Ensure the Y-axis starts at 0
+                        ticks: {
+                            stepSize: 1,  // Increment by 1 on the Y-axis
+                            min: 0         // Ensure the minimum value is 0
+                        },
+                        title: {
+                            display: true,
+                            text: 'Number of Bookings'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                return 'Bookings: ' + tooltipItem.raw; // Custom tooltip label
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        console.error("Bookings data is not in the expected format");
+    }
+</script>
