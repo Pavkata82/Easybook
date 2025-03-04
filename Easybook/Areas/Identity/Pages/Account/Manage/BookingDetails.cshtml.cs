@@ -25,6 +25,7 @@ namespace Easybook.Areas.Identity.Pages.Account.Manage
                 .Include(b => b.Status)
                 .Include(b => b.BookingDateRanges)
                     .ThenInclude(d => d.Room)
+                    .ThenInclude(r => r.RoomType)
                 .FirstOrDefaultAsync(b => b.BookingId == id);
 
             if (Booking == null)
