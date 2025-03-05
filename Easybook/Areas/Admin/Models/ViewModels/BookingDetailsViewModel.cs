@@ -6,6 +6,8 @@
         public string CustomerName { get; set; }
         public string Status { get; set; }
         public string HotelName { get; set; }
+        public int HotelId { get; set; }
+        public string UserId { get; set; }
         public decimal TotalPrice { get; set; }
         public string SpecialRequests { get; set; }
         public DateTime CheckInDate { get; set; }
@@ -21,6 +23,4 @@
         public decimal RoomPrice { get; set; }
         public decimal TotalPrice { get; set; }
     }
-
-
 }

@@ -6,7 +6,10 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5><i class="bi bi-tag"></i> Номер на резервация: @Model.BookingId</h5>
-            <span class="badge bg-@(Model.Status == "Approved" ? "success" : "warning") fs-6">
+            <span class="badge @(Model.Status == "Cancelled" ? "bg-danger" : "")
+            @(Model.Status == "Pending" ? "bg-warning" : "")
+            @(Model.Status == "Payment" ? "bg-info" : "")
+            @(Model.Status == "Approved" ? "bg-success" : "") fs-6 ">
                 <i class="bi bi-info-circle"></i> @Model.Status
             </span>
         </div>
@@ -14,12 +17,26 @@
             <div class="mb-3">
                 <h4><i class="bi bi-person-circle"></i> Информация за клиента</h4>
                 <p><strong>Име:</strong> @Model.CustomerName</p>
+                <p><strong>ID на потребителя:</strong> @Model.UserId</p>
+                <!-- Link to User Details page -->
+                <p>
+                    <a href="@Url.Action("UserDetails", "User", new { id = Model.UserId })" class="btn btn-info btn-sm">
+                        <i class="bi bi-person-lines-fill"></i> Управление на потребителя
+                    </a>
+                </p>
             </div>
 
             <div class="row mb-3">
                 <div class="col-md-6">
                     <h4><i class="bi bi-buildings"></i> Информация за хотела</h4>
                     <p><strong>Хотел:</strong> @Model.HotelName</p>
+                    <p><strong>ID на хотела:</strong> @Model.HotelId</p>
+                    <!-- Link to Hotel Details page -->
+                    <p>
+                        <a href="@Url.Action("HotelDetails", "Hotel", new { id = Model.HotelId })" class="btn btn-info btn-sm">
+                            <i class="bi bi-building"></i> Управление на хотела
+                        </a>
+                    </p>
                 </div>
                 <div class="col-md-6">
                     <h4><i class="bi bi-cash-coin"></i> Платена сума</h4>

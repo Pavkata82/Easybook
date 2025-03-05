@@ -4,6 +4,7 @@ using Easybook.Constants;
 using Easybook.Data;
 using Microsoft.EntityFrameworkCore;
 using Easybook.Areas.Admin.Models.ViewModels;
+using Easybook.Models;
 
 namespace Easybook.Areas.Admin.Controllers
 {
@@ -21,33 +22,53 @@ namespace Easybook.Areas.Admin.Controllers
         public IActionResult Index()
         {
             var currentYear = DateTime.Now.Year;
-            var startOfYear = new DateTime(currentYear, 1, 1);  // Start of the current year at midnight
-            var endOfYear = new DateTime(currentYear + 1, 1, 1).AddMilliseconds(-1);  // End of the year, 23:59:59.999
+            var startOfYear = new DateTime(currentYear, 1, 1);
+            var endOfYear = new DateTime(currentYear + 1, 1, 1).AddMilliseconds(-1);
 
-            // Fetch the bookings data, grouped by month
+            // Group bookings by Booking Date (DateOfBooking)
             var bookingsData = _context.Bookings
                 .Where(b => b.DateOfBooking >= startOfYear && b.DateOfBooking < endOfYear)
-                .GroupBy(b => b.DateOfBooking.Month) // Group by month
+                .GroupBy(b => b.DateOfBooking.Month)
                 .Select(g => new
                 {
                     Month = g.Key,
                     BookingCount = g.Count()
                 })
-                .OrderBy(g => g.Month) // Order by month
+                .OrderBy(g => g.Month)
                 .ToList();
 
-            // Ensure we have data for all months (even with 0 bookings)
-            var allMonths = Enumerable.Range(1, 12).Select(month => new
+            var allBookingMonths = Enumerable.Range(1, 12).Select(month => new
             {
                 Month = month,
                 BookingCount = bookingsData.FirstOrDefault(b => b.Month == month)?.BookingCount ?? 0
             }).ToList();
 
-            // Pass the data to the view
-            ViewData["BookingsData"] = allMonths;
+            // Group bookings by Check-In Date (BookingDateRange.StartDate)
+            var checkInData = _context.BookingDateRanges
+                .Where(b => b.StartDate >= startOfYear && b.StartDate < endOfYear)
+                .GroupBy(b => b.StartDate.Month)
+                .Select(g => new
+                {
+                    Month = g.Key,
+                    BookingCount = g.Count()
+                })
+                .OrderBy(g => g.Month)
+                .ToList();
+
+            var allCheckInMonths = Enumerable.Range(1, 12).Select(month => new
+            {
+                Month = month,
+                BookingCount = checkInData.FirstOrDefault(b => b.Month == month)?.BookingCount ?? 0
+            }).ToList();
+
+            // Pass data to the view
+            ViewData["BookingsData"] = allBookingMonths;
+            ViewData["CheckInData"] = allCheckInMonths;
 
             return View();
         }
+
+
 
         public IActionResult ManageUsers()
         {

@@ -1,93 +1,61 @@
 ﻿@{
-    ViewData["Title"] = "Admin Dashboard";
-    ViewData["ActivePage"] = "Index";
     var bookingsData = ViewData["BookingsData"] as List<dynamic>;
+    var checkInData = ViewData["CheckInData"] as List<dynamic>;
 }
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-12">
-            <h3>Bookings for the Year</h3>
-            <canvas id="bookingsChart" style="height: 300px; width: 100%;"></canvas>
+        <div class="col-12 col-md-10 offset-md-1">
+            <h3 class="text-center">Резервации по дата на резервация</h3>
+            <canvas id="bookingsChart" class="w-100" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12 col-md-10 offset-md-1">
+            <h3 class="text-center">Резервации по дата на настаняване</h3>
+            <canvas id="checkInChart" class="w-100" style="max-height: 300px;"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Include Chart.js library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Serialize the bookings data passed from ViewData
+    var monthNames = [
+        "Януари", "Февруари", "Март", "Април", "Май", "Юни",
+        "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"
+    ];
+
     var bookingsData = @Html.Raw(Json.Serialize(ViewData["BookingsData"]));
+    var checkInData = @Html.Raw(Json.Serialize(ViewData["CheckInData"]));
 
-    // Check if the data is properly formatted
-    if (Array.isArray(bookingsData)) {
-        // Month names for the x-axis
-        var monthNames = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        ];
+    function createChart(canvasId, data, label, color) {
+        var months = data.map(item => monthNames[item.month - 1]);
+        var bookingCounts = data.map(item => item.bookingCount);
 
-        // Extract months and booking counts
-        var months = bookingsData.map(function (item) {
-            return monthNames[item.month - 1]; // Adjust for 0-based index
-        });
-
-        var bookingCounts = bookingsData.map(function (item) {
-            return item.bookingCount;
-        });
-
-        // Create the data for the chart
-        var chartData = {
-            labels: months,
-            datasets: [{
-                label: 'Bookings per Month',
-                data: bookingCounts,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)', // Background color
-                borderColor: 'rgba(54, 162, 235, 1)', // Border color
-                borderWidth: 1
-            }]
-        };
-
-        // Chart.js configuration
-        var ctx = document.getElementById('bookingsChart').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',  // Chart type (bar, line, etc.)
-            data: chartData,
+        var ctx = document.getElementById(canvasId).getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: label,
+                    data: bookingCounts,
+                    backgroundColor: color,
+                    borderColor: color.replace("0.2", "1"),
+                    borderWidth: 1
+                }]
+            },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        beginAtZero: true, // Ensure the X-axis starts at 0
-                        title: {
-                            display: true,
-                            text: 'Month'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true, // Ensure the Y-axis starts at 0
-                        ticks: {
-                            stepSize: 1,  // Increment by 1 on the Y-axis
-                            min: 0         // Ensure the minimum value is 0
-                        },
-                        title: {
-                            display: true,
-                            text: 'Number of Bookings'
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (tooltipItem) {
-                                return 'Bookings: ' + tooltipItem.raw; // Custom tooltip label
-                            }
-                        }
-                    }
+                    y: { beginAtZero: true, stepSize: 1 }
                 }
             }
         });
-    } else {
-        console.error("Bookings data is not in the expected format");
     }
+
+    createChart("bookingsChart", bookingsData, "Резервации на месец (по дата на резервация)", "rgba(54, 162, 235, 0.2)");
+    createChart("checkInChart", checkInData, "Резервации на месец (по дата на настаняване)", "rgba(255, 99, 132, 0.2)");
 </script>

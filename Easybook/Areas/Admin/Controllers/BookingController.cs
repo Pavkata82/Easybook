@@ -1,6 +1,7 @@
 ﻿using Easybook.Areas.Admin.Models.ViewModels;
 using Easybook.Constants;
 using Easybook.Data;
+using Easybook.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +30,12 @@ namespace Easybook.Areas.Admin.Controllers
                 .OrderByDescending(b => b.BookingId)
                 .ToList();
 
+            // Populate the dropdown with status options
+            ViewBag.Statuses = _context.Statuses.ToList();
+
             return View(bookings); // Pass the data to the view
         }
+
 
         public IActionResult BookingDetails(int id)
         {
@@ -56,6 +61,8 @@ namespace Easybook.Areas.Admin.Controllers
                 CustomerName = booking.User?.UserName,
                 Status = booking.Status?.Name,
                 HotelName = booking.Hotel?.Name,
+                HotelId = booking.Hotel?.HotelId ?? 0,  // Hotel ID
+                UserId = booking.User?.Id,  // User ID
                 TotalPrice = booking.TotalPrice,
                 SpecialRequests = booking.SpecialRequests,
                 CheckInDate = booking.BookingDateRanges.Select(bdr => bdr.StartDate).First(),
@@ -95,6 +102,29 @@ namespace Easybook.Areas.Admin.Controllers
             }
 
             return View(bookingDetailsViewModel);
+        }
+
+        [HttpPost]
+        public IActionResult UpdateBookingStatus(int bookingId, int statusId)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.Status)
+                .FirstOrDefault(b => b.BookingId == bookingId);
+
+            if (booking != null)
+            {
+                // Get the selected status
+                var selectedStatus = _context.Statuses.FirstOrDefault(s => s.Id == statusId);
+
+                if (selectedStatus != null)
+                {
+                    booking.StatusId = selectedStatus.Id;
+                    _context.SaveChanges();
+                }
+            }
+
+            // Redirect to the ManageBookings page after the update
+            return RedirectToAction("ManageBookings");
         }
 
 
