@@ -127,6 +127,26 @@ namespace Easybook.Areas.Admin.Controllers
             return RedirectToAction("ManageBookings");
         }
 
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var booking = _context.Bookings
+                .Include(b => b.BookingDateRanges) // Include related data to ensure cascade delete works properly
+                .FirstOrDefault(b => b.BookingId == id);
 
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            // Remove associated BookingDateRanges first (if needed)
+            _context.BookingDateRanges.RemoveRange(booking.BookingDateRanges);
+
+            // Remove the booking itself
+            _context.Bookings.Remove(booking);
+            _context.SaveChanges();
+
+            return RedirectToAction("ManageBookings");
+        }
     }
 }

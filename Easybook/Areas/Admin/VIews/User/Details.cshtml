@@ -1,0 +1,64 @@
+﻿@model Easybook.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<h2>User Details</h2>
+<hr />
+
+<div class="card mb-3" style="max-width: 600px;">
+    <div class="row g-0">
+        <div class="col-md-4 text-center">
+            <img src="@Model.ProfilePictureUrl" class="img-fluid rounded-circle mt-3" alt="Profile Picture" style="width: 150px; height: 150px;">
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h5 class="card-title">@Model.FirstName @Model.LastName</h5>
+                <p class="card-text"><strong>Email:</strong> @Model.Email</p>
+                <p class="card-text"><strong>Phone:</strong> @(Model.PhoneNumber ?? "N/A")</p>
+                <p class="card-text"><strong>Username:</strong> @Model.UserName</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Booking History</h3>
+@if (Model.Bookings != null && Model.Bookings.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Booking ID</th>
+                <th>Hotel</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Status</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in Model.Bookings)
+            {
+                <tr>
+                    <td>@booking.BookingId</td>
+                    <td>@(booking.Hotel?.Name ?? "N/A")</td>
+                    <td>@booking.BookingDateRanges.FirstOrDefault()?.StartDate.ToString("dd/MM/yyyy")</td>
+                    <td>@booking.BookingDateRanges.FirstOrDefault()?.EndDate.ToString("dd/MM/yyyy")</td>
+                    <td>@booking.Status?.Name</td>
+                    <td>
+                        <a href="@Url.Action("BookingDetails", "Booking", new { id = booking.BookingId, area = "Admin" })" class="btn btn-sm btn-primary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No bookings found.</p>
+}
+
+<a href="@Url.Action("ManageUsers", "User", new { area = "Admin" })" class="btn btn-secondary">Back to Users</a>

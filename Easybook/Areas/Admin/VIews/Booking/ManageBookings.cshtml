@@ -88,14 +88,19 @@
 
 
                                 <!-- Actions -->
-                                <td>
-                                    <a href="@Url.Action("Delete", "Booking", new { id = booking.BookingId })" class="btn btn-danger btn-sm" title="Cancel">
-                                        <i class="bi bi-trash"></i> Cancel
-                                    </a>
+                                <td class="d-flex gap-2">
+                                    <form asp-action="Delete" asp-controller="Booking" method="post" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                        <input type="hidden" name="id" value="@booking.BookingId" />
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Cancel
+                                        </button>
+                                    </form>
+
                                     <a href="@Url.Action("BookingDetails", "Booking", new { area = "Admin", id = booking.BookingId })" class="btn btn-info btn-sm" title="View Details">
                                         <i class="bi bi-eye"></i> View Details
                                     </a>
                                 </td>
+
                             </tr>
                         }
                     </tbody>
