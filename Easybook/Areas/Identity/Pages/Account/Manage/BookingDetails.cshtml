@@ -29,16 +29,20 @@
             <div class="row">
                 <div class="col-md-4">
                     <h5>📌 Статус</h5>
-                    <span class="badge
-                                    @(Model.Booking.Status.Name == "Pending" ? "bg-warning" :
-                                        Model.Booking.Status.Name == "Cancelled" ? "bg-danger" :
-                                        "bg-success")">
+                    <span class="badge @(
+                        Model.Booking.Status.Name == "Отменено" ? "bg-danger" :
+                        Model.Booking.Status.Name == "В очакване" ? "bg-warning" :
+                        Model.Booking.Status.Name == "Плащане" ? "bg-info" :
+                        Model.Booking.Status.Name == "Одобрено" ? "bg-success" : "")">
                         @Model.Booking.Status.Name
                     </span>
                 </div>
                 <div class="col-md-4">
                     <h5>💰 Обща цена</h5>
-                    <p class="fw-bold text-success">@Model.Booking.TotalPrice.ToString("C")</p>
+                    <!-- Format the price as BGN -->
+                    <p class="fw-bold text-success">
+                        @Model.Booking.TotalPrice.ToString("C", new System.Globalization.CultureInfo("bg-BG"))
+                    </p>
                 </div>
                 <div class="col-md-4">
                     <h5>📜 Специални заявки</h5>

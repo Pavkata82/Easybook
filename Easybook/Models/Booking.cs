@@ -31,6 +31,8 @@ namespace Easybook.Models
 
         [Required]
         public DateTime DateOfBooking { get; set; } = DateTime.UtcNow;
+
+        public bool IsPaid { get; set; } = false;
     }
 
 }

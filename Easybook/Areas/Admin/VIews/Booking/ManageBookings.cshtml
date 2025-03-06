@@ -51,14 +51,14 @@
 
                                 <!-- Status Dropdown for Changing Status & Colored Status Display -->
                                 <td>
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex align-items-center justify-content-between">
                                         <!-- Status Badge with Color -->
-                                        <span class="badge 
-                                                    @(booking.Status.Name == "Cancelled" ? "bg-danger" : "") 
-                                                    @(booking.Status.Name == "Pending" ? "bg-warning" : "") 
-                                                    @(booking.Status.Name == "Payment" ? "bg-info" : "")
-                                                    @(booking.Status.Name == "Approved" ? "bg-success" : "")"
-                                                    style="min-width: 100px; text-align: center;">
+                                        <span class="badge
+                                                    @(booking.Status.Name == "Отменено" ? "bg-danger" : "")
+                                                    @(booking.Status.Name == "В очакване" ? "bg-warning" : "")
+                                                    @(booking.Status.Name == "Плащане" ? "bg-info" : "")
+                                                    @(booking.Status.Name == "Одобрено" ? "bg-success" : "")
+                                              style="min-width: 100px; text-align: center;">
                                             @booking.Status.Name
                                         </span>
 
@@ -82,6 +82,7 @@
                                                     }
                                                 }
                                             </select>
+
                                         </form>
                                     </div>
                                 </td>

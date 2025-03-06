@@ -6,10 +6,12 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5><i class="bi bi-tag"></i> Номер на резервация: @Model.BookingId</h5>
-            <span class="badge @(Model.Status == "Cancelled" ? "bg-danger" : "")
-            @(Model.Status == "Pending" ? "bg-warning" : "")
-            @(Model.Status == "Payment" ? "bg-info" : "")
-            @(Model.Status == "Approved" ? "bg-success" : "") fs-6 ">
+            <span class="badge
+                  @(Model.Status == "Отменено" ? "bg-danger" : "")
+                @(Model.Status == "В очакване" ? "bg-warning" : "")
+                @(Model.Status == "Плащане" ? "bg-info" : "")
+                @(Model.Status == "Одобрено" ? "bg-success" : "")
+                fs-6">
                 <i class="bi bi-info-circle"></i> @Model.Status
             </span>
         </div>

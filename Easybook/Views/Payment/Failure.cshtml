@@ -1,0 +1,29 @@
+﻿@{
+    ViewData["Title"] = "Плащането неуспешно!";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-body text-center">
+                    <!-- Failure Icon -->
+                    <i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i>
+                    <h2 class="mt-4">Плащането неуспешно!</h2>
+                    <p class="lead">Нещо се обърка по време на обработката на плащането. Моля, опитайте отново.</p>
+
+                    <!-- Return to Home Button -->
+                    <a href="/" class="btn btn-danger btn-lg mt-3">
+                        <i class="bi bi-house-door"></i> Върнете се в началото
+                    </a>
+
+                    <!-- Retry Payment Button -->
+                    <a href="@Url.Action("Checkout", "Payment", new { bookingId = Model.BookingId })" class="btn btn-primary btn-lg mt-3">
+                        <i class="bi bi-arrow-repeat"></i> Опитайте отново
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

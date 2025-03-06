@@ -32,21 +32,41 @@
                                 <td>@booking.BookingDateRanges.Min(d => d.StartDate).ToShortDateString()</td>
                                 <td>@booking.BookingDateRanges.Max(d => d.EndDate).ToShortDateString()</td>
                                 <td>
-                                    <span class="badge
-                                        @(booking.Status.Name == "Pending" ? "bg-warning" :
-                                          booking.Status.Name == "Cancelled" ? "bg-danger" :
-                                          "bg-success")">
-                                        @booking.Status.Name
-                                    </span>
+                                    @if (booking.Status.Name == "В очакване")  // Pending
+                                    {
+                                        <span class="badge bg-warning">@booking.Status.Name</span>
+                                    }
+                                    else if (booking.Status.Name == "Плащане")  // Payment
+                                    {
+                                        <span class="badge bg-info">@booking.Status.Name</span>
+                                    }
+                                    else if (booking.Status.Name == "Одобрено")  // Approved
+                                    {
+                                        <span class="badge bg-success">@booking.Status.Name</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">@booking.Status.Name</span>
+                                        // Cancelled
+                                    }
                                 </td>
-                                <td><strong>@booking.TotalPrice.ToString("C")</strong></td>
-                                <td>
+                                <!-- Format Total Price as BGN -->
+                                <td><strong>@booking.TotalPrice.ToString("C", new System.Globalization.CultureInfo("bg-BG"))</strong></td>
+                                <td class="d-flex flex-column">
                                     <a asp-page="./BookingDetails" asp-route-id="@booking.BookingId" class="btn btn-outline-primary btn-sm">
                                         🔍 Преглед
                                     </a>
+
+                                    @if (booking.Status.Name == "Плащане")
+                                    {
+                                        <a asp-controller="Payment" asp-action="Checkout" asp-area="" asp-route-bookingId="@booking.BookingId" class="btn btn-success btn-sm d-block mt-2">
+                                            💳 Плати сега
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }
+
                     </tbody>
                 </table>
             </div>
