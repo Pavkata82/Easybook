@@ -67,6 +67,7 @@ namespace Easybook.Areas.Admin.Controllers
                 SpecialRequests = booking.SpecialRequests,
                 CheckInDate = booking.BookingDateRanges.Select(bdr => bdr.StartDate).First(),
                 CheckOutDate = booking.BookingDateRanges.Select(bdr => bdr.EndDate).First(),
+                IsPaid = booking.IsPaid,  // Add the payment status here
                 RoomDetails = new List<RoomDetailViewModel>()
             };
 
@@ -103,6 +104,7 @@ namespace Easybook.Areas.Admin.Controllers
 
             return View(bookingDetailsViewModel);
         }
+
 
         [HttpPost]
         public IActionResult UpdateBookingStatus(int bookingId, int statusId)

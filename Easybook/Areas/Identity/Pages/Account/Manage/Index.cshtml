@@ -10,22 +10,103 @@
     <div class="col-md-9">
         <h3>@ViewData["Title"]</h3>
         <partial name="_StatusMessage" for="StatusMessage" />
-        <form id="profile-form" method="post">
+
+        <form id="profile-form" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder=" " disabled />
-                <label asp-for="Username" class="form-label"></label>
+
+            <!-- Profile Picture -->
+            <div class="profile-picture-wrapper mb-3">
+                <label for="profilePicture" class="profile-picture-label">
+                    <img src="@Model.ProfilePictureUrl" alt="Profile Picture" class="profile-picture-img" />
+                    <span class="edit-overlay">Промяна</span>
+                </label>
+                <input type="file" id="profilePicture" name="ProfilePicture" class="d-none" accept="image/*" />
             </div>
+
+            <!-- First Name -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.FirstName" class="form-control" placeholder=" " />
+                <label asp-for="Input.FirstName" class="form-label"></label>
+                <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-floating mb-3">
+                <input asp-for="Input.LastName" class="form-control" placeholder=" " />
+                <label asp-for="Input.LastName" class="form-label"></label>
+                <span asp-validation-for="Input.LastName" class="text-danger"></span>
+            </div>
+
+            <!-- Phone Number -->
             <div class="form-floating mb-3">
                 <input asp-for="Input.PhoneNumber" class="form-control" placeholder=" " />
                 <label asp-for="Input.PhoneNumber" class="form-label"></label>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
             </div>
+
             <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Запазване</button>
         </form>
+
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('profilePicture').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.querySelector('.profile-picture-img').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 }
+
+<style>
+    .profile-picture-wrapper {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        cursor: pointer; /* Ensures the cursor changes to a hand when hovering */
+        display: inline-block; /* Ensures that the cursor applies to the label and image */
+    }
+
+    .profile-picture-label {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: pointer; /* Ensures that the label also has the pointer cursor */
+    }
+
+    .profile-picture-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .edit-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 8px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none; /* Avoid blocking clicks */
+    }
+
+    .profile-picture-wrapper:hover .edit-overlay {
+        opacity: 1;
+    }
+
+
+
+</style>

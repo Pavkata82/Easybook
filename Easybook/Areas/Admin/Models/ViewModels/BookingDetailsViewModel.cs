@@ -13,6 +13,7 @@
         public DateTime CheckInDate { get; set; }
         public DateTime CheckOutDate { get; set; }
         public int NumberOfDays => (CheckOutDate - CheckInDate).Days;
+        public bool IsPaid { get; set; }  // Add this field
         public List<RoomDetailViewModel> RoomDetails { get; set; }
     }
 

@@ -1,29 +1,29 @@
 ﻿@model IEnumerable<Easybook.Models.Booking>
 
 @{
-    ViewData["Title"] = "Manage Bookings";
+    ViewData["Title"] = "Управление на Резервации";
     ViewData["ActivePage"] = "ManageBookings";
 }
 
-<h2>Manage Bookings</h2>
-<p>Here you can approve, cancel, or edit bookings.</p>
+<h2>Управление на Резервации</h2>
+<p>Тук можете да одобрите, отмените или редактирате резервации.</p>
 
 <!-- Table for listing bookings -->
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5>All Bookings</h5>
+                <h5>Всички Резервации</h5>
             </div>
             <div class="card-body">
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>Booking ID</th>
-                            <th>Customer Name</th>
-                            <th>Booking Date Range</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>Резервационен ID</th>
+                            <th>Име на клиента</th>
+                            <th>Период на резервацията</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -31,9 +31,9 @@
                         {
                             <tr>
                                 <td>@booking.BookingId</td>
-                                <td>@(booking.User?.FirstName + " " + booking.User?.LastName ?? "N/A")</td>
+                                <td>@(booking.User?.FirstName + " " + booking.User?.LastName ?? "Няма данни")</td>
 
-                                <!-- Display the booking date range (assuming the first date range) -->
+                                <!-- Display the booking date range -->
                                 <td>
                                     @if (booking.BookingDateRanges?.Any() == true)
                                     {
@@ -45,7 +45,7 @@
                                     }
                                     else
                                     {
-                                        <span>No Date Range Available</span>
+                                        <span>Няма налични дати</span>
                                     }
                                 </td>
 
@@ -54,18 +54,18 @@
                                     <div class="d-flex align-items-center justify-content-between">
                                         <!-- Status Badge with Color -->
                                         <span class="badge
-                                                    @(booking.Status.Name == "Отменено" ? "bg-danger" : "")
-                                                    @(booking.Status.Name == "В очакване" ? "bg-warning" : "")
-                                                    @(booking.Status.Name == "Плащане" ? "bg-info" : "")
-                                                    @(booking.Status.Name == "Одобрено" ? "bg-success" : "")
-                                              style="min-width: 100px; text-align: center;">
+                                          @(booking.Status.Name == "Отменено" ? "bg-danger" : "")
+                                          @(booking.Status.Name == "В очакване" ? "bg-warning" : "")
+                                          @(booking.Status.Name == "Плащане" ? "bg-info" : "")
+                                          @(booking.Status.Name == "Одобрено" ? "bg-success" : "")
+                                          style="min-width: 100px; text-align: center;">
                                             @booking.Status.Name
                                         </span>
 
                                         <!-- Status Dropdown for Changing Status -->
                                         <form asp-action="UpdateBookingStatus" method="post" class="ms-2">
                                             <input type="hidden" name="bookingId" value="@booking.BookingId" />
-                                            <select name="statusId" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 120px;">
+                                            <select name="statusId" class="form-select form-select-sm" onchange="confirmStatusChange(this)" style="width: 120px;" data-previous-value="@booking.StatusId">
                                                 @foreach (var status in ViewBag.Statuses as List<Easybook.Models.Status>)
                                                 {
                                                     @if (status.Id == booking.StatusId)
@@ -82,26 +82,23 @@
                                                     }
                                                 }
                                             </select>
-
                                         </form>
                                     </div>
                                 </td>
 
-
                                 <!-- Actions -->
                                 <td class="d-flex gap-2">
-                                    <form asp-action="Delete" asp-controller="Booking" method="post" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                    <form asp-action="Delete" asp-controller="Booking" method="post" onsubmit="return confirm('Сигурни ли сте, че искате да отмените тази резервация?');">
                                         <input type="hidden" name="id" value="@booking.BookingId" />
                                         <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="bi bi-trash"></i> Cancel
+                                            <i class="bi bi-trash"></i> Отмени
                                         </button>
                                     </form>
 
-                                    <a href="@Url.Action("BookingDetails", "Booking", new { area = "Admin", id = booking.BookingId })" class="btn btn-info btn-sm" title="View Details">
-                                        <i class="bi bi-eye"></i> View Details
+                                    <a href="@Url.Action("BookingDetails", "Booking", new { area = "Admin", id = booking.BookingId })" class="btn btn-info btn-sm" title="Прегледай Детайли">
+                                        <i class="bi bi-eye"></i> Прегледай
                                     </a>
                                 </td>
-
                             </tr>
                         }
                     </tbody>
@@ -110,3 +107,24 @@
         </div>
     </div>
 </div>
+
+<script>
+    function confirmStatusChange(selectElement) {
+        const selectedValue = selectElement.value;
+        const selectedText = selectElement.options[selectElement.selectedIndex].text;
+
+        // Show a confirmation dialog in Bulgarian
+        const confirmed = confirm(`Сигурни ли сте, че искате да промените статуса на "${selectedText}"?`);
+
+        // If the user clicks 'Cancel', reset the select value back to the original one
+        if (!confirmed) {
+            selectElement.value = selectElement.dataset.previousValue;
+        }
+        else {
+            // If confirmed, update the previous value of the select dropdown
+            selectElement.dataset.previousValue = selectedValue;
+            // Submit the form
+            selectElement.form.submit();
+        }
+    }
+</script>
