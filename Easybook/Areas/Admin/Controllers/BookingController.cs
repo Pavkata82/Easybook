@@ -54,6 +54,9 @@ namespace Easybook.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            // ✅ Fetch the available statuses from the database
+            ViewBag.Statuses = _context.Statuses.ToList();
+
             // Prepare the ViewModel
             var bookingDetailsViewModel = new BookingDetailsViewModel
             {
@@ -61,13 +64,13 @@ namespace Easybook.Areas.Admin.Controllers
                 CustomerName = booking.User?.UserName,
                 Status = booking.Status?.Name,
                 HotelName = booking.Hotel?.Name,
-                HotelId = booking.Hotel?.HotelId ?? 0,  // Hotel ID
-                UserId = booking.User?.Id,  // User ID
+                HotelId = booking.Hotel?.HotelId ?? 0,
+                UserId = booking.User?.Id,
                 TotalPrice = booking.TotalPrice,
                 SpecialRequests = booking.SpecialRequests,
                 CheckInDate = booking.BookingDateRanges.Select(bdr => bdr.StartDate).First(),
                 CheckOutDate = booking.BookingDateRanges.Select(bdr => bdr.EndDate).First(),
-                IsPaid = booking.IsPaid,  // Add the payment status here
+                IsPaid = booking.IsPaid,
                 RoomDetails = new List<RoomDetailViewModel>()
             };
 
@@ -77,7 +80,6 @@ namespace Easybook.Areas.Admin.Controllers
                 .GroupBy(r => r.RoomType.Name)
                 .ToDictionary(g => g.Key, g => g.FirstOrDefault().Price);
 
-            // Populate the RoomDetails with RoomType, Quantity, Price, and Total Price for the entire stay
             var roomGroups = booking.BookingDateRanges
                 .GroupBy(br => br.Room.RoomType.Name)
                 .Select(group => new
@@ -90,9 +92,8 @@ namespace Easybook.Areas.Admin.Controllers
 
             foreach (var roomGroup in roomGroups)
             {
-                var totalRoomPrice = roomGroup.Price * roomGroup.Quantity * bookingDetailsViewModel.NumberOfDays;
+                var totalRoomPrice = roomGroup.Price * roomGroup.Quantity * (bookingDetailsViewModel.CheckOutDate - bookingDetailsViewModel.CheckInDate).Days;
 
-                // Add the RoomDetailViewModel to RoomDetails
                 bookingDetailsViewModel.RoomDetails.Add(new RoomDetailViewModel
                 {
                     RoomType = roomGroup.RoomType,
@@ -104,6 +105,7 @@ namespace Easybook.Areas.Admin.Controllers
 
             return View(bookingDetailsViewModel);
         }
+
 
 
         [HttpPost]
@@ -125,8 +127,17 @@ namespace Easybook.Areas.Admin.Controllers
                 }
             }
 
-            // Redirect to the ManageBookings page after the update
-            return RedirectToAction("ManageBookings");
+            // Get the referer (previous page URL)
+            var refererUrl = Request.Headers["Referer"].ToString();
+
+            // If the referer is not null or empty, redirect to it
+            if (!string.IsNullOrEmpty(refererUrl))
+            {
+                return Redirect(refererUrl);
+            }
+
+            // Redirect to the BookingDetails page with the bookingId as a query parameter
+            return RedirectToAction("BookingDetails", "Booking", new { area = "Admin", id = bookingId });
         }
 
         [HttpPost]

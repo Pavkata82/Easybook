@@ -65,7 +65,7 @@
                                         <!-- Status Dropdown for Changing Status -->
                                         <form asp-action="UpdateBookingStatus" method="post" class="ms-2">
                                             <input type="hidden" name="bookingId" value="@booking.BookingId" />
-                                            <select name="statusId" class="form-select form-select-sm" onchange="confirmStatusChange(this)" style="width: 120px;" data-previous-value="@booking.StatusId">
+                                            <select name="statusId" class="form-select form-select-sm" onchange="confirmStatusChangeForSelect(this)" style="width: 120px;" data-previous-value="@booking.StatusId">
                                                 @foreach (var status in ViewBag.Statuses as List<Easybook.Models.Status>)
                                                 {
                                                     @if (status.Id == booking.StatusId)
@@ -83,6 +83,7 @@
                                                 }
                                             </select>
                                         </form>
+
                                     </div>
                                 </td>
 
@@ -108,23 +109,4 @@
     </div>
 </div>
 
-<script>
-    function confirmStatusChange(selectElement) {
-        const selectedValue = selectElement.value;
-        const selectedText = selectElement.options[selectElement.selectedIndex].text;
-
-        // Show a confirmation dialog in Bulgarian
-        const confirmed = confirm(`Сигурни ли сте, че искате да промените статуса на "${selectedText}"?`);
-
-        // If the user clicks 'Cancel', reset the select value back to the original one
-        if (!confirmed) {
-            selectElement.value = selectElement.dataset.previousValue;
-        }
-        else {
-            // If confirmed, update the previous value of the select dropdown
-            selectElement.dataset.previousValue = selectedValue;
-            // Submit the form
-            selectElement.form.submit();
-        }
-    }
-</script>
+<script src="~/js/status-change.js"></script>

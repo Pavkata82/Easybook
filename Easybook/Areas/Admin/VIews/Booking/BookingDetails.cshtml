@@ -1,29 +1,37 @@
-﻿<div class="container">
-    <div class="card shadow-sm mb-4">
+﻿@model Easybook.Areas.Admin.Models.ViewModels.BookingDetailsViewModel
+
+@{
+    ViewData["Title"] = "Детайли за резервация";
+    ViewData["ActivePage"] = "BookingDetails";
+}
+
+<div class="container">
+    <div class="card shadow-sm mb-4 p-3">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5><i class="bi bi-tag"></i> Номер на резервация: @Model.BookingId</h5>
             <!-- Status with dropdown toggle -->
             <div class="dropdown">
                 <span class="badge
-                    @(Model.Status == "Отменено" ? "bg-danger" : "")
-                    @(Model.Status == "В очакване" ? "bg-warning" : "")
-                    @(Model.Status == "Плащане" ? "bg-info" : "")
-                    @(Model.Status == "Одобрено" ? "bg-success" : "")
-                    fs-6"
+                @(Model.Status == "Отменено" ? "bg-danger" :
+                  Model.Status == "В очакване" ? "bg-warning" :
+                  Model.Status == "Плащане" ? "bg-info" :
+                  Model.Status == "Одобрено" ? "bg-success" : "bg-secondary")
+                fs-6 dropdown-toggle"
                       style="cursor: pointer;"
-                      id="statusLabel" data-bs-toggle="dropdown" aria-expanded="false">
+                      id="statusLabel"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false">
                     <i class="bi bi-info-circle"></i> @Model.Status
                 </span>
 
-                <!-- Dropdown menu -->
                 <ul class="dropdown-menu" aria-labelledby="statusLabel">
                     @foreach (var status in ViewBag.Statuses as List<Easybook.Models.Status>)
                     {
                         <li>
-                            <form asp-action="UpdateBookingStatus" method="post">
+                            <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
                                 <input type="hidden" name="bookingId" value="@Model.BookingId" />
                                 <input type="hidden" name="statusId" value="@status.Id" />
-                                <button type="submit" class="dropdown-item">
+                                <button type="button" class="dropdown-item @(Model.Status == status.Name ? "active" : "")" onclick="confirmStatusChangeForButton(this)">
                                     @status.Name
                                 </button>
                             </form>
@@ -75,8 +83,6 @@
                             }
                         </p>
                     </div>
-                </div>
-
                 </div>
             </div>
 
@@ -133,3 +139,4 @@
     </div>
 </div>
 
+<script src="~/js/status-change.js"></script>

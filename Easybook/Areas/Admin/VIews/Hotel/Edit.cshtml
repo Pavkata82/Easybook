@@ -1,0 +1,112 @@
+﻿@using Easybook.Areas.Admin.Models.ViewModels
+@model HotelEditViewModel
+
+@{
+    ViewData["Title"] = "Редактиране на Хотел";
+    ViewData["ActivePage"] = "EditHotel";
+}
+
+<link rel="stylesheet" href="~/css/hotel-edit.css" />
+
+<div class="hotel-edit-form">
+    <h2>Редактиране на Хотел</h2>
+
+    <form asp-action="Edit" asp-route-id="@Model.HotelId" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-group">
+                <label asp-for="Name">Име на Хотела</label>
+                <input asp-for="Name" class="form-control" placeholder="Въведете име на хотела" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Address">Адрес</label>
+                <input asp-for="Address" class="form-control" placeholder="Въведете адрес" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="City">Град</label>
+                <input asp-for="City" class="form-control" placeholder="Въведете град" />
+                <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Country">Държава</label>
+                <input asp-for="Country" class="form-control" placeholder="Въведете държава" />
+                <span asp-validation-for="Country" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Description">Описание</label>
+            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Въведете описание"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label>Удобства</label>
+            <div class="facilities-grid">
+                @foreach (var facility in Model.AllFacilities)
+                {
+                    <div class="facility-card @(Model.SelectedFacilityIds.Contains(facility.FacilityId.ToString()) ? "selected" : "")" data-id="@facility.FacilityId">
+                        <div>@facility.Name</div>
+                    </div>
+                }
+            </div>
+            <input type="hidden" name="SelectedFacilityIds" id="selected-facilities" value="@string.Join(",", Model.SelectedFacilityIds)" />
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Единични Стаи</label>
+                <input asp-for="SingleRoomCount" type="number" min="0" class="form-control" />
+                <span asp-validation-for="SingleRoomCount" class="text-danger"></span>
+
+                <label>Цена за Единична Стая</label>
+                <input asp-for="SingleRoomPrice" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="SingleRoomPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Двойни Стаи</label>
+                <input asp-for="DoubleRoomCount" type="number" min="0" class="form-control" />
+                <span asp-validation-for="DoubleRoomCount" class="text-danger"></span>
+
+                <label>Цена за Двойна Стая</label>
+                <input asp-for="DoubleRoomPrice" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="DoubleRoomPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Семейни Стаи</label>
+                <input asp-for="FamilyRoomCount" type="number" min="0" class="form-control" />
+                <span asp-validation-for="FamilyRoomCount" class="text-danger"></span>
+
+                <label>Цена за Семейна Стая</label>
+                <input asp-for="FamilyRoomPrice" type="number" step="0.01" min="0" class="form-control" />
+                <span asp-validation-for="FamilyRoomPrice" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div id="existing-images">
+                @foreach (var image in Model.Images)
+                {
+                    <div class="existing-image">
+                        <img src="@image.ImageUrl" alt="Image" class="existing-image-thumbnail"
+                             data-image-id="@image.ImageId"
+                             data-is-main="@image.IsMain" /> <!-- Add data attributes -->
+                        <button type="button" class="btn btn-danger" data-image-id="@image.ImageId">Изтрий</button>
+                    </div>
+                }
+            </div>
+
+            <input asp-for="NewImages" type="file" class="form-control" multiple id="image-input" />
+            <span asp-validation-for="NewImages" class="text-danger"></span>
+            <div id="image-preview"></div>
+
+            <!-- Hidden input to store the selected main image index -->
+            <input type="hidden" id="main-image-index" name="MainImageIndex" value="@Model.MainImageIndex" />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100">Запази промени</button>
+    </form>
+</div>
+
+<script src="~/js/hotel-edit.js"></script>
