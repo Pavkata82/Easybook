@@ -91,7 +91,7 @@
                     <div class="existing-image">
                         <img src="@image.ImageUrl" alt="Image" class="existing-image-thumbnail"
                              data-image-id="@image.ImageId"
-                             data-is-main="@image.IsMain" /> <!-- Add data attributes -->
+                             data-is-main="@(image.IsMain.ToString().ToLower())" /> <!-- Pass the IsMain value -->
                         <button type="button" class="btn btn-danger" data-image-id="@image.ImageId">Изтрий</button>
                     </div>
                 }
