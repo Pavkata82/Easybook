@@ -12,6 +12,9 @@
     <h2>Редактиране на Хотел</h2>
 
     <form asp-action="Edit" asp-route-id="@Model.HotelId" enctype="multipart/form-data">
+
+        <input hidden name="HotelId" value=@Model.HotelId />
+
         <div class="form-grid">
             <div class="form-group">
                 <label asp-for="Name">Име на Хотела</label>
@@ -89,21 +92,40 @@
                 @foreach (var image in Model.Images)
                 {
                     <div class="existing-image">
-                        <img src="@image.ImageUrl" alt="Image" class="existing-image-thumbnail"
+                        <img src="@image.ImageUrl"
+                             alt="Image"
+                             class="existing-image-thumbnail"
                              data-image-id="@image.ImageId"
-                             data-is-main="@(image.IsMain.ToString().ToLower())" /> <!-- Pass the IsMain value -->
-                        <button type="button" class="btn btn-danger" data-image-id="@image.ImageId">Изтрий</button>
+                             data-is-main="@(image.IsMain.ToString().ToLower())" />
+
+                        <!-- Updated delete button (X) -->
+                        <button type="button" class="delete-btn" data-image-id="@image.ImageId">
+                            <span>&times;</span>
+                        </button>
                     </div>
                 }
             </div>
 
+            <p id="main-image-warning">Моля изберете основно изображение</p>
+
+            <!-- Message about main image -->
+            <div class="image-info-msg">
+                <p><strong>Важно:</strong> Изображението с синя рамка е основно. Можете да го промените, като щракнете върху друго изображение.</p>
+            </div>
+
             <input asp-for="NewImages" type="file" class="form-control" multiple id="image-input" />
             <span asp-validation-for="NewImages" class="text-danger"></span>
+
             <div id="image-preview"></div>
 
             <!-- Hidden input to store the selected main image index -->
             <input type="hidden" id="main-image-index" name="MainImageIndex" value="@Model.MainImageIndex" />
+
+            <!-- Hidden input to store the image for deletion -->
+            <input type="hidden" id="images-for-deletion" name="ImagesForDeletion" value="" />
         </div>
+
+
 
         <button type="submit" class="btn btn-primary w-100">Запази промени</button>
     </form>

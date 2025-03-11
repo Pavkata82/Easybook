@@ -183,104 +183,123 @@ namespace Easybook.Areas.Admin.Controllers
         }
 
 
+        // POST: Admin/Hotel/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(HotelEditViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.AllFacilities = _context.Facilities.ToList();
+                return View(model);
+            }
+
+            var hotel = await _context.Hotels
+                .Include(h => h.Images)
+                .Include(h => h.HotelFacilities)
+                .FirstOrDefaultAsync(h => h.HotelId == model.HotelId);
+
+            if (hotel == null)
+            {
+                return NotFound();
+            }
+
+            // Update hotel details
+            hotel.Name = model.Name;
+            hotel.Address = model.Address;
+            hotel.City = model.City;
+            hotel.Country = model.Country;
+            hotel.Description = model.Description;
+
+            // Update room info (Single, Double, Family)
+            // Assuming you have a method to update room counts and prices
+            UpdateRoomInfo(hotel, model);
+
+            // Update facilities (many-to-many relationship)
+            var selectedFacilityIds = model.SelectedFacilityIds.Select(id => int.Parse(id)).ToList();
+            hotel.HotelFacilities = _context.HotelFacilities
+                .Where(hf => selectedFacilityIds.Contains(hf.FacilityId) && hf.HotelId == hotel.HotelId)
+                .ToList();
+
+            // Remove deleted images
+            var imagesForDeletion = model.ImagesForDeletion?.Split(',').Select(int.Parse).ToList();
+            if (imagesForDeletion != null)
+            {
+                var imagesToDelete = hotel.Images.Where(i => imagesForDeletion.Contains(i.ImageId)).ToList();
+                _context.Images.RemoveRange(imagesToDelete);
+            }
+
+            if (model.NewImages != null && model.NewImages.Any())
+            {
+
+                for (int i = 0; i < model.NewImages.Count; i++)
+                {
+                    var imageFile = model.NewImages[i];
+                    var fileName = Path.Combine(Guid.NewGuid() + "_" + imageFile.FileName);
+                    var uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "hotels", fileName);
+
+                    using (var stream = new FileStream(uploadPath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+
+                    var isMain = i == model.MainImageIndex; // Check if this is the main image
+
+                    var image = new Image
+                    {
+                        HotelId = hotel.HotelId,
+                        ImageUrl = "/images/hotels/" + fileName, // Store relative path
+                        IsMain = false
+                    };
+
+                    _context.Images.Add(image);
+                }
+            }
+
+            // Set main image (if any)
+            if (model.MainImageIndex.HasValue)
+            {
+                var mainImage = hotel.Images.FirstOrDefault(i => i.ImageId == model.MainImageIndex.Value);
+                if (mainImage != null)
+                {
+                    hotel.Images.ToList().ForEach(i => i.IsMain = false); // Remove main image flag from all
+                    mainImage.IsMain = true; // Set the new main image
+                }
+            }
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ManageHotels"); // Redirect to the list of hotels or any other page
+        }
 
 
+        // Helper method to update room info
+        private void UpdateRoomInfo(Hotel hotel, HotelEditViewModel model)
+        {
+            // Update the count and price for each room type
+            // Assuming you want to update based on the room type
+            var singleRoom = hotel.Rooms.FirstOrDefault(r => r.RoomType.Name == "Single");
+            if (singleRoom != null)
+            {
+                singleRoom.Price = model.SingleRoomPrice;
+                // Update room count as needed
+            }
 
-        // POST method to handle form submission for editing
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //[Authorize]
-        //public async Task<IActionResult> Edit(int id, HotelEditViewModel viewModel)
-        //{
-        //    if (id != viewModel.HotelId)
-        //    {
-        //        return NotFound();
-        //    }
+            var doubleRoom = hotel.Rooms.FirstOrDefault(r => r.RoomType.Name == "Double");
+            if (doubleRoom != null)
+            {
+                doubleRoom.Price = model.DoubleRoomPrice;
+                // Update room count as needed
+            }
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        // Get the existing hotel
-        //        var hotel = await _context.Hotels.Include(h => h.HotelFacilities).FirstOrDefaultAsync(h => h.HotelId == id);
-
-        //        if (hotel == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        // Update hotel details
-        //        hotel.Name = viewModel.Name;
-        //        hotel.Address = viewModel.Address;
-        //        hotel.City = viewModel.City;
-        //        hotel.Country = viewModel.Country;
-        //        hotel.Description = viewModel.Description;
-        //        hotel.SingleRoomCount = viewModel.SingleRoomCount;
-        //        hotel.SingleRoomPrice = viewModel.SingleRoomPrice;
-        //        hotel.DoubleRoomCount = viewModel.DoubleRoomCount;
-        //        hotel.DoubleRoomPrice = viewModel.DoubleRoomPrice;
-        //        hotel.FamilyRoomCount = viewModel.FamilyRoomCount;
-        //        hotel.FamilyRoomPrice = viewModel.FamilyRoomPrice;
-
-        //        // Remove old facilities
-        //        var existingFacilities = _context.HotelFacilities.Where(hf => hf.HotelId == hotel.HotelId).ToList();
-        //        _context.HotelFacilities.RemoveRange(existingFacilities);
-
-        //        // Add new facilities
-        //        if (viewModel.SelectedFacilityIds != null)
-        //        {
-        //            var selectedFacilityIds = viewModel.SelectedFacilityIds
-        //                .Select(int.Parse)
-        //                .ToList();
-
-        //            foreach (var facilityId in selectedFacilityIds)
-        //            {
-        //                _context.HotelFacilities.Add(new HotelFacilities
-        //                {
-        //                    HotelId = hotel.HotelId,
-        //                    FacilityId = facilityId
-        //                });
-        //            }
-        //        }
-
-        //        // Handle new images (uploaded by user)
-        //        if (viewModel.NewImages != null && viewModel.NewImages.Any())
-        //        {
-        //            for (int i = 0; i < viewModel.NewImages.Count; i++)
-        //            {
-        //                var imageFile = viewModel.NewImages[i];
-        //                var fileName = Path.Combine(Guid.NewGuid() + "_" + imageFile.FileName);
-        //                var uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "hotels", fileName);
-
-        //                // Save the file to the server
-        //                using (var stream = new FileStream(uploadPath, FileMode.Create))
-        //                {
-        //                    await imageFile.CopyToAsync(stream);
-        //                }
-
-        //                var isMain = i == viewModel.MainImageIndex; // Check if this is the main image
-
-        //                var image = new Image
-        //                {
-        //                    HotelId = hotel.HotelId,
-        //                    ImageUrl = "/images/hotels/" + fileName,
-        //                    IsMain = isMain
-        //                };
-
-        //                _context.Images.Add(image);
-        //            }
-        //        }
-
-        //        await _context.SaveChangesAsync();
-
-        //        return RedirectToAction(nameof(ManageHotels)); // Redirect to ManageHotels or another suitable action
-        //    }
-
-        //    // If validation fails, reload facilities for the view
-        //    viewModel.AllFacilities = _context.Facilities.ToList();
-        //    return View(viewModel);
-        //}
-
-
-
+            var familyRoom = hotel.Rooms.FirstOrDefault(r => r.RoomType.Name == "Family");
+            if (familyRoom != null)
+            {
+                familyRoom.Price = model.FamilyRoomPrice;
+                // Update room count as needed
+            }
+        }
 
         private async Task AddRooms(int hotelId, int count, string roomTypeName, decimal roomPrice)
         {

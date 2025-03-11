@@ -1,5 +1,4 @@
 ﻿using Easybook.Models;
-using System.Collections.Generic;
 
 namespace Easybook.Areas.Admin.Models.ViewModels
 {
@@ -33,5 +32,8 @@ namespace Easybook.Areas.Admin.Models.ViewModels
 
         // For new image uploads (we'll handle the uploaded files in the controller)
         public List<IFormFile> NewImages { get; set; } = new List<IFormFile>();
+
+        // New property to handle deletion of images
+        public string? ImagesForDeletion { get; set; }  // Comma-separated list of image IDs to delete
     }
 }
