@@ -173,7 +173,7 @@ namespace Easybook.Areas.Admin.Controllers
                 // Set Images for editing (already associated images)
                 Images = hotel.Images,
                 // Select the main image based on the saved flag
-                MainImageIndex = hotel.Images?.FirstOrDefault(i => i.IsMain)?.ImageId,
+                MainImageIndex = hotel.Images?.FirstOrDefault(i => i.IsMain)?.ImageId.ToString(),
                 AllFacilities = _context.Facilities.ToList(),
                 // Selected facilities
                 SelectedFacilityIds = hotel.HotelFacilities.Select(hf => hf.FacilityId.ToString()).ToArray()
@@ -216,10 +216,14 @@ namespace Easybook.Areas.Admin.Controllers
             UpdateRoomInfo(hotel, model);
 
             // Update facilities (many-to-many relationship)
-            var selectedFacilityIds = model.SelectedFacilityIds.Select(id => int.Parse(id)).ToList();
-            hotel.HotelFacilities = _context.HotelFacilities
-                .Where(hf => selectedFacilityIds.Contains(hf.FacilityId) && hf.HotelId == hotel.HotelId)
-                .ToList();
+            if (model.SelectedFacilityIds.Length > 1)
+            {
+                var selectedFacilityIds = model.SelectedFacilityIds.Select(id => int.Parse(id)).ToList();
+                hotel.HotelFacilities = _context.HotelFacilities
+                    .Where(hf => selectedFacilityIds.Contains(hf.FacilityId) && hf.HotelId == hotel.HotelId)
+                    .ToList();
+            }
+            
 
             // Remove deleted images
             var imagesForDeletion = model.ImagesForDeletion?.Split(',').Select(int.Parse).ToList();
@@ -229,6 +233,7 @@ namespace Easybook.Areas.Admin.Controllers
                 _context.Images.RemoveRange(imagesToDelete);
             }
 
+            // Add new images
             if (model.NewImages != null && model.NewImages.Any())
             {
 
@@ -243,8 +248,6 @@ namespace Easybook.Areas.Admin.Controllers
                         await imageFile.CopyToAsync(stream);
                     }
 
-                    var isMain = i == model.MainImageIndex; // Check if this is the main image
-
                     var image = new Image
                     {
                         HotelId = hotel.HotelId,
@@ -256,18 +259,53 @@ namespace Easybook.Areas.Admin.Controllers
                 }
             }
 
-            // Set main image (if any)
-            if (model.MainImageIndex.HasValue)
+            // Save changes to the database (new IDs assigned here)
+            await _context.SaveChangesAsync();
+
+            // Handle the main image after new images are saved
+            if (!string.IsNullOrEmpty(model.MainImageIndex))
             {
-                var mainImage = hotel.Images.FirstOrDefault(i => i.ImageId == model.MainImageIndex.Value);
-                if (mainImage != null)
+                if (model.MainImageIndex.StartsWith("new-"))
                 {
-                    hotel.Images.ToList().ForEach(i => i.IsMain = false); // Remove main image flag from all
-                    mainImage.IsMain = true; // Set the new main image
+                    // Match new image by index
+                    int newImageIndex = int.Parse(model.MainImageIndex.Replace("new-", ""));
+
+                    // Get the list of most recently added images
+                    var newImages = hotel.Images
+                        .OrderByDescending(i => i.ImageId)
+                        .Take(model.NewImages.Count)
+                        .ToList();
+
+                    // Map by index (based on order they were added)
+                    if (newImageIndex < newImages.Count)
+                    {
+                        var newMainImage = newImages[newImageIndex];
+
+                        if (newMainImage != null)
+                        {
+                            // Unset other main images
+                            hotel.Images.ToList().ForEach(i => i.IsMain = false);
+
+                            // Set the newly added image as main
+                            newMainImage.IsMain = true;
+                        }
+                    }
+                }
+                else
+                {
+                    // Handle existing image case
+                    int mainImageId = int.Parse(model.MainImageIndex);
+                    var mainImage = hotel.Images.FirstOrDefault(i => i.ImageId == mainImageId);
+
+                    if (mainImage != null)
+                    {
+                        hotel.Images.ToList().ForEach(i => i.IsMain = false);
+                        mainImage.IsMain = true;
+                    }
                 }
             }
 
-            // Save changes to the database
+            // Save changes again to update IsMain
             await _context.SaveChangesAsync();
 
             return RedirectToAction("ManageHotels"); // Redirect to the list of hotels or any other page

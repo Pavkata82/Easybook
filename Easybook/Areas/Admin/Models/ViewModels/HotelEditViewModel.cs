@@ -28,7 +28,7 @@ namespace Easybook.Areas.Admin.Models.ViewModels
 
         // Images
         public ICollection<Image> Images { get; set; } = new List<Image>();  // List of images associated with the hotel
-        public int? MainImageIndex { get; set; }  // Index of the main image (if any)
+        public string? MainImageIndex { get; set; }  // Index of the main image (if any)
 
         // For new image uploads (we'll handle the uploaded files in the controller)
         public List<IFormFile> NewImages { get; set; } = new List<IFormFile>();

@@ -11,10 +11,30 @@
 
     let currentMainImage = null; // Track the current main image
 
+    // === Check for missing main image before form submission ===
+    const form = document.getElementById('hotel-edit-form');
+    console.log(form);
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault(); // Stop default form submission
+        event.stopImmediatePropagation(); // Stop other listeners from firing
+
+        console.log('Submitting form with mainImageIndex:', mainImageIndexInput.value);
+
+        if (!mainImageIndexInput.value) {
+            mainImageWarning.style.display = 'block';
+            alert("Моля, изберете основно изображение.");
+        } else {
+            console.log("Form is ready to submit!");
+            // form.submit(); // Uncomment this if you want to manually submit after validation
+        }
+    });
+
+
     // === Set Selected Main Image ===
     function setMainImage(selectedImg) {
         if (selectedImg.closest('.existing-image').querySelector('.delete-btn.active')) {
-            alert("This image is marked for deletion and cannot be set as the main image.");
+            alert("Това изображение е маркирано за изтриване и не може да бъде основно изображение.");
             return; // Prevent setting an image marked for deletion as the main image
         }
 
@@ -40,6 +60,8 @@
             img.classList.add('selected');
             mainImageIndexInput.value = img.getAttribute('data-image-id');
             currentMainImage = img; // Track the initial main image
+
+            mainImageWarning.style.display = "none"
         }
 
         img.addEventListener('click', () => setMainImage(img));
@@ -132,15 +154,6 @@
 
                 reader.readAsDataURL(file); // Read file as data URL (for image preview)
             });
-        }
-    });
-
-    // === Check for missing main image before form submission ===
-    const form = document.querySelector('form'); // Assuming the images are being submitted via a form
-    form.addEventListener('submit', (event) => {
-        if (!currentMainImage) {
-            event.preventDefault(); // Prevent form submission
-            mainImageWarning.style.display = 'block'; // Show the warning text
         }
     });
 

@@ -11,7 +11,7 @@
 <div class="hotel-edit-form">
     <h2>Редактиране на Хотел</h2>
 
-    <form asp-action="Edit" asp-route-id="@Model.HotelId" enctype="multipart/form-data">
+    <form id="hotel-edit-form" asp-action="Edit" asp-route-id="@Model.HotelId" enctype="multipart/form-data">
 
         <input hidden name="HotelId" value=@Model.HotelId />
 
