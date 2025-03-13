@@ -4,6 +4,18 @@
 @{
     ViewData["Title"] = "Редактиране на Хотел";
     ViewData["ActivePage"] = "EditHotel";
+
+    List<int> selectedFacilities = new List<int>();
+
+    if (!string.IsNullOrEmpty(Model.SelectedFacilityIds))
+    {
+        selectedFacilities = Model.SelectedFacilityIds
+            .Split(',')
+            .Where(id => !string.IsNullOrEmpty(id))  // Ensure there are no empty strings
+            .Select(id => int.TryParse(id, out var facilityId) ? facilityId : 0) // Safely parse and handle invalid IDs
+            .Where(id => id != 0)  // Remove any failed parses (id = 0)
+            .ToList();
+    }
 }
 
 <link rel="stylesheet" href="~/css/hotel-edit.css" />
@@ -49,10 +61,11 @@
             <div class="facilities-grid">
                 @foreach (var facility in Model.AllFacilities)
                 {
-                    <div class="facility-card @(Model.SelectedFacilityIds.Contains(facility.FacilityId.ToString()) ? "selected" : "")" data-id="@facility.FacilityId">
+                    <div class="facility-card @(selectedFacilities.Contains(facility.FacilityId) ? "selected" : "")" data-id="@facility.FacilityId">
                         <div>@facility.Name</div>
                     </div>
                 }
+
             </div>
             <input type="hidden" name="SelectedFacilityIds" id="selected-facilities" value="@string.Join(",", Model.SelectedFacilityIds)" />
         </div>
@@ -60,7 +73,7 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>Единични Стаи</label>
-                <input asp-for="SingleRoomCount" type="number" min="0" class="form-control" />
+                <input asp-for="SingleRoomCount" type="number" min=@Model.SingleRoomCount class="form-control" />
                 <span asp-validation-for="SingleRoomCount" class="text-danger"></span>
 
                 <label>Цена за Единична Стая</label>
@@ -69,7 +82,7 @@
             </div>
             <div class="form-group">
                 <label>Двойни Стаи</label>
-                <input asp-for="DoubleRoomCount" type="number" min="0" class="form-control" />
+                <input asp-for="DoubleRoomCount" type="number" min=@Model.DoubleRoomCount class="form-control" />
                 <span asp-validation-for="DoubleRoomCount" class="text-danger"></span>
 
                 <label>Цена за Двойна Стая</label>
@@ -78,7 +91,7 @@
             </div>
             <div class="form-group">
                 <label>Семейни Стаи</label>
-                <input asp-for="FamilyRoomCount" type="number" min="0" class="form-control" />
+                <input asp-for="FamilyRoomCount" type="number" min=@Model.FamilyRoomCount class="form-control" />
                 <span asp-validation-for="FamilyRoomCount" class="text-danger"></span>
 
                 <label>Цена за Семейна Стая</label>

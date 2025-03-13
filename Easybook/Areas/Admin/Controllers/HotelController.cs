@@ -176,7 +176,7 @@ namespace Easybook.Areas.Admin.Controllers
                 MainImageIndex = hotel.Images?.FirstOrDefault(i => i.IsMain)?.ImageId.ToString(),
                 AllFacilities = _context.Facilities.ToList(),
                 // Selected facilities
-                SelectedFacilityIds = hotel.HotelFacilities.Select(hf => hf.FacilityId.ToString()).ToArray()
+                SelectedFacilityIds = string.Join(',', hotel.HotelFacilities.Select(hf => hf.FacilityId.ToString()))
             };
 
             return View(viewModel);
@@ -216,14 +216,47 @@ namespace Easybook.Areas.Admin.Controllers
             UpdateRoomInfo(hotel, model);
 
             // Update facilities (many-to-many relationship)
-            if (model.SelectedFacilityIds.Length > 1)
+            if (model.SelectedFacilityIds != null)
             {
-                var selectedFacilityIds = model.SelectedFacilityIds.Select(id => int.Parse(id)).ToList();
-                hotel.HotelFacilities = _context.HotelFacilities
-                    .Where(hf => selectedFacilityIds.Contains(hf.FacilityId) && hf.HotelId == hotel.HotelId)
+                // Convert the comma-separated string of facility IDs into a List of Integers
+                var selectedFacilityIds = model.SelectedFacilityIds
+                    .Split(',')
+                    .Select(id => int.Parse(id))  // Convert each ID to an integer
                     .ToList();
+
+                // Get the existing facilities linked to the hotel
+                var existingFacilities = _context.HotelFacilities
+                    .Where(hf => hf.HotelId == hotel.HotelId)
+                    .ToList();
+
+                // Identify the facility IDs that are currently linked to the hotel
+                var currentFacilityIds = existingFacilities.Select(hf => hf.FacilityId).ToList();
+
+                // 1. Remove facilities that are no longer selected (present in current but not in selected list)
+                var facilitiesToRemove = existingFacilities
+                    .Where(hf => !selectedFacilityIds.Contains(hf.FacilityId))
+                    .ToList();
+
+                _context.HotelFacilities.RemoveRange(facilitiesToRemove);
+
+                // 2. Add new facilities that are selected but not yet linked to the hotel (present in selected but not in current list)
+                var facilitiesToAdd = selectedFacilityIds
+                    .Where(id => !currentFacilityIds.Contains(id))
+                    .Select(id => new HotelFacilities
+                    {
+                        HotelId = hotel.HotelId,
+                        FacilityId = id
+                    })
+                    .ToList();
+
+                _context.HotelFacilities.AddRange(facilitiesToAdd);
+
+                // Save the changes to the database
+                _context.SaveChanges();
             }
-            
+
+
+
 
             // Remove deleted images
             var imagesForDeletion = model.ImagesForDeletion?.Split(',').Select(int.Parse).ToList();
@@ -316,28 +349,101 @@ namespace Easybook.Areas.Admin.Controllers
         private void UpdateRoomInfo(Hotel hotel, HotelEditViewModel model)
         {
             // Update the count and price for each room type
-            // Assuming you want to update based on the room type
-            var singleRoom = hotel.Rooms.FirstOrDefault(r => r.RoomType.Name == "Single");
-            if (singleRoom != null)
+
+            var hotelWithRooms = _context.Hotels
+                             .Include(h => h.Rooms) // Include rooms
+                             .ThenInclude(r => r.RoomType) // Include RoomType for rooms
+                             .FirstOrDefault(h => h.HotelId == hotel.HotelId);
+
+            // For single rooms
+            var singleRooms = hotel.Rooms.Where(r => r.RoomType.Name == "Единична").ToList();
+            if (singleRooms != null && singleRooms.Any())
             {
-                singleRoom.Price = model.SingleRoomPrice;
-                // Update room count as needed
+                // Update price for all existing single rooms
+                foreach (var room in singleRooms)
+                {
+                    room.Price = model.SingleRoomPrice; // Update the price for existing rooms
+                }
+
+                // Add new rooms only if the count is greater than the current count
+                if (model.SingleRoomCount > singleRooms.Count)
+                {
+                    var roomTypeId = singleRooms.First().RoomTypeId;  // Get RoomTypeId from the first room in the list
+
+                    for (int i = singleRooms.Count; i < model.SingleRoomCount; i++)
+                    {
+                        _context.Rooms.Add(new Room
+                        {
+                            HotelId = hotel.HotelId,
+                            RoomTypeId = roomTypeId,  // Use the correct RoomTypeId
+                            Capacity = 1, // Assuming single rooms have capacity of 1
+                            Price = model.SingleRoomPrice
+                        });
+                    }
+                }
             }
 
-            var doubleRoom = hotel.Rooms.FirstOrDefault(r => r.RoomType.Name == "Double");
-            if (doubleRoom != null)
+            // For double rooms
+            var doubleRooms = hotel.Rooms.Where(r => r.RoomType.Name == "Двойна").ToList();
+            if (doubleRooms.Any())
             {
-                doubleRoom.Price = model.DoubleRoomPrice;
-                // Update room count as needed
+                // Update price for all existing double rooms
+                foreach (var room in doubleRooms)
+                {
+                    room.Price = model.DoubleRoomPrice; // Update the price for existing rooms
+                }
+
+                // Add new rooms only if the count is greater than the current count
+                if (model.DoubleRoomCount > doubleRooms.Count)
+                {
+                    var roomTypeId = doubleRooms.First().RoomTypeId;  // Get RoomTypeId from the first room in the list
+
+                    for (int i = doubleRooms.Count; i < model.DoubleRoomCount; i++)
+                    {
+                        _context.Rooms.Add(new Room
+                        {
+                            HotelId = hotel.HotelId,
+                            RoomTypeId = roomTypeId,  // Use the correct RoomTypeId
+                            Capacity = 2, // Assuming double rooms have capacity of 2
+                            Price = model.DoubleRoomPrice
+                        });
+                    }
+                }
             }
 
-            var familyRoom = hotel.Rooms.FirstOrDefault(r => r.RoomType.Name == "Family");
-            if (familyRoom != null)
+            // For family rooms
+            var familyRooms = hotel.Rooms.Where(r => r.RoomType.Name == "Семейна").ToList();
+            if (familyRooms.Any())
             {
-                familyRoom.Price = model.FamilyRoomPrice;
-                // Update room count as needed
+                // Update price for all existing family rooms
+                foreach (var room in familyRooms)
+                {
+                    room.Price = model.FamilyRoomPrice; // Update the price for existing rooms
+                }
+
+                // Add new rooms only if the count is greater than the current count
+                if (model.FamilyRoomCount > familyRooms.Count)
+                {
+                    var roomTypeId = familyRooms.First().RoomTypeId;  // Get RoomTypeId from the first room in the list
+
+                    for (int i = familyRooms.Count; i < model.FamilyRoomCount; i++)
+                    {
+                        _context.Rooms.Add(new Room
+                        {
+                            HotelId = hotel.HotelId,
+                            RoomTypeId = roomTypeId,  // Use the correct RoomTypeId
+                            Capacity = 4, // Assuming family rooms have capacity of 4
+                            Price = model.FamilyRoomPrice
+                        });
+                    }
+                }
             }
+
+            // Save the changes to the database
+            _context.SaveChanges();
         }
+
+
 
         private async Task AddRooms(int hotelId, int count, string roomTypeName, decimal roomPrice)
         {

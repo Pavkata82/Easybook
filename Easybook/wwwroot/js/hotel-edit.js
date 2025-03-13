@@ -13,21 +13,37 @@
 
     // === Check for missing main image before form submission ===
     const form = document.getElementById('hotel-edit-form');
-    console.log(form);
 
     form.addEventListener('submit', (event) => {
-        event.preventDefault(); // Stop default form submission
-        event.stopImmediatePropagation(); // Stop other listeners from firing
-
-        console.log('Submitting form with mainImageIndex:', mainImageIndexInput.value);
-
         if (!mainImageIndexInput.value) {
+            event.preventDefault(); // Stop default form submission
             mainImageWarning.style.display = 'block';
             alert("Моля, изберете основно изображение.");
-        } else {
-            console.log("Form is ready to submit!");
-            // form.submit(); // Uncomment this if you want to manually submit after validation
         }
+
+    });
+
+    // === Handle Facility Selection ===
+    facilityCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const facilityId = card.getAttribute('data-id');
+            let selectedFacilities = selectedFacilitiesInput.value
+                ? selectedFacilitiesInput.value.split(',').map(id => id.trim())
+                : [];
+
+            if (card.classList.contains('selected')) {
+                // If already selected, remove it
+                selectedFacilities = selectedFacilities.filter(id => id !== facilityId);
+                card.classList.remove('selected');
+            } else {
+                // If not selected, add it
+                selectedFacilities.push(facilityId);
+                card.classList.add('selected');
+            }
+
+            // Update the hidden input value with selected IDs
+            selectedFacilitiesInput.value = selectedFacilities.join(',');
+        });
     });
 
 

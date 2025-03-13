@@ -24,7 +24,7 @@ namespace Easybook.Areas.Admin.Models.ViewModels
 
         // Facilities
         public List<Facility> AllFacilities { get; set; } = new List<Facility>();
-        public string[] SelectedFacilityIds { get; set; }  // List of selected facility IDs
+        public string? SelectedFacilityIds { get; set; }  // List of selected facility IDs
 
         // Images
         public ICollection<Image> Images { get; set; } = new List<Image>();  // List of images associated with the hotel
