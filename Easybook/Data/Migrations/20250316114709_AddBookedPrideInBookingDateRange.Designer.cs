@@ -4,6 +4,7 @@ using Easybook.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Easybook.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250316114709_AddBookedPrideInBookingDateRange")]
+    partial class AddBookedPrideInBookingDateRange
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,9 +118,6 @@ namespace Easybook.Data.Migrations
                     b.Property<int>("HotelId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("HotelId1")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
@@ -139,8 +139,6 @@ namespace Easybook.Data.Migrations
                     b.HasKey("BookingId");
 
                     b.HasIndex("HotelId");
-
-                    b.HasIndex("HotelId1");
 
                     b.HasIndex("StatusId");
 
@@ -225,9 +223,6 @@ namespace Easybook.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -482,12 +477,8 @@ namespace Easybook.Data.Migrations
                     b.HasOne("Easybook.Models.Hotel", "Hotel")
                         .WithMany()
                         .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Easybook.Models.Hotel", null)
-                        .WithMany("Bookings")
-                        .HasForeignKey("HotelId1");
 
                     b.HasOne("Easybook.Models.Status", "Status")
                         .WithMany("bookings")
@@ -562,7 +553,7 @@ namespace Easybook.Data.Migrations
                     b.HasOne("Easybook.Models.Hotel", "Hotel")
                         .WithMany("Rooms")
                         .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Easybook.Models.RoomType", "RoomType")
@@ -644,8 +635,6 @@ namespace Easybook.Data.Migrations
 
             modelBuilder.Entity("Easybook.Models.Hotel", b =>
                 {
-                    b.Navigation("Bookings");
-
                     b.Navigation("HotelFacilities");
 
                     b.Navigation("Images");

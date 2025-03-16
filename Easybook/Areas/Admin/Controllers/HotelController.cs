@@ -131,7 +131,7 @@ namespace Easybook.Areas.Admin.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("ManageHotels");
             }
 
             // If validation fails, reload facilities for the view
@@ -344,6 +344,51 @@ namespace Easybook.Areas.Admin.Controllers
             return RedirectToAction("ManageHotels"); // Redirect to the list of hotels or any other page
         }
 
+        public async Task<IActionResult> Delete(int id)
+        {
+            var hotel = await _context.Hotels
+                                    .Include(h => h.Rooms)
+                                    .Include(h => h.HotelFacilities)
+                                    .Include(h => h.Images)
+                                    .Include(h => h.Bookings) // Include related bookings
+                                    .FirstOrDefaultAsync(h => h.HotelId == id);
+
+            if (hotel == null)
+            {
+                return NotFound();
+            }
+
+            // Deleting related rooms, bookings, facilities, and images
+            // Delete related rooms
+            _context.Rooms.RemoveRange(hotel.Rooms);
+
+            // Delete related facilities
+            _context.HotelFacilities.RemoveRange(hotel.HotelFacilities);
+
+            // Delete related images from the filesystem
+            foreach (var image in hotel.Images)
+            {
+                var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('/')); // Get full path from the relative URL
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath); // Delete the file from the file system
+                }
+            }
+
+            // Delete related images
+            _context.Images.RemoveRange(hotel.Images);
+
+            // Delete related bookings (if necessary)
+            _context.Bookings.RemoveRange(hotel.Bookings);
+
+            // Finally, delete the hotel itself
+            _context.Hotels.Remove(hotel);
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(ManageHotels)); // Redirect to manage hotels page after deletion
+        }
 
         // Helper method to update room info
         private void UpdateRoomInfo(Hotel hotel, HotelEditViewModel model)

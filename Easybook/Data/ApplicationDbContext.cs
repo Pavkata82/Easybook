@@ -25,6 +25,27 @@ namespace Easybook.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure cascading deletes for related entities
+            modelBuilder.Entity<Hotel>()
+                .HasMany(h => h.Rooms)
+                .WithOne(r => r.Hotel)
+                .OnDelete(DeleteBehavior.Restrict); // Change cascading to Restrict for Rooms
+
+            modelBuilder.Entity<Hotel>()
+                .HasMany(h => h.Bookings)
+                .WithOne(b => b.Hotel)
+                .OnDelete(DeleteBehavior.Cascade); // Cascade delete for Hotels
+
+            modelBuilder.Entity<Hotel>()
+                .HasMany(h => h.Images)
+                .WithOne(i => i.Hotel)
+                .OnDelete(DeleteBehavior.Cascade); // Cascading delete for Images
+
+            modelBuilder.Entity<Hotel>()
+                .HasMany(h => h.HotelFacilities)
+                .WithOne(hf => hf.Hotel)
+                .OnDelete(DeleteBehavior.Cascade); // Cascading delete for HotelFacilities
+
             // Specify the precision and scale for the Price property of Room
             modelBuilder.Entity<Room>()
                 .Property(r => r.Price)
@@ -58,7 +79,15 @@ namespace Easybook.Data
                 .HasOne(b => b.Hotel)
                 .WithMany()
                 .HasForeignKey(b => b.HotelId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade); // Change this to Cascade instead of Restrict
+
+            modelBuilder.Entity<Booking>()
+                .Property(b => b.TotalPrice)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<BookingDateRange>()
+                .Property(bdr => bdr.BookedPrice)
+                .HasColumnType("decimal(18,2)");
 
             // Configure the relationship between Booking and Status
             modelBuilder.Entity<Booking>()
@@ -79,6 +108,8 @@ namespace Easybook.Data
                 .WithMany(r => r.BookingDateRanges)
                 .HasForeignKey(bdr => bdr.RoomId);
         }
+
+
 
     }
 }

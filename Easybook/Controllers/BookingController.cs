@@ -212,7 +212,8 @@ namespace Easybook.Controllers
                             {
                                 RoomId = room.RoomId,
                                 StartDate = model.CheckInDate,
-                                EndDate = model.CheckOutDate
+                                EndDate = model.CheckOutDate,
+                                BookedPrice = room.Price
                             });
                         }
                     }

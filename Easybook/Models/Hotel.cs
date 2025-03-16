@@ -28,6 +28,10 @@ namespace Easybook.Models
         public ICollection<HotelFacilities> HotelFacilities { get; set; }
 
         public ICollection<Image> Images { get; set; } = new List<Image>();
+
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+        public bool IsActive { get; set; } = true; // Default is active
     }
 
 }

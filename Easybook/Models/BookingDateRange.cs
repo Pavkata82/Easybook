@@ -22,6 +22,10 @@ namespace Easybook.Models
         [Required]
         public int BookingId { get; set; } // Foreign Key to Booking
         public Booking Booking { get; set; } // Navigation Property
+
+        // Store the price at the time of booking
+        [Required]
+        public decimal BookedPrice { get; set; }
     }
 
 }

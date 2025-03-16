@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Детайли за резервация";
     Layout = "~/Areas/Identity/Pages/Shared/_ManageLayout.cshtml";
+    ViewData["ActivePage"] = ManageNavPages.Bookings;
 }
 
 <div class="container mt-4">
@@ -63,6 +64,7 @@
                                 <th>🏠 Стая</th>
                                 <th>📆 От</th>
                                 <th>📆 До</th>
+                                <th><i class="bi bi-cash-stack"></i> Цена</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -73,6 +75,7 @@
                                     <td>@room.Room.RoomType.Name</td>
                                     <td>@room.StartDate.ToShortDateString()</td>
                                     <td>@room.EndDate.ToShortDateString()</td>
+                                    <td>@room.BookedPrice.ToString("C", new System.Globalization.CultureInfo("bg-BG"))</td>
                                 </tr>
                             }
                         </tbody>
