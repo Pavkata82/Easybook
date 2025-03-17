@@ -74,31 +74,25 @@ namespace Easybook.Areas.Admin.Controllers
                 RoomDetails = new List<RoomDetailViewModel>()
             };
 
-            // Fetch room types and their prices
-            var roomPrices = _context.Rooms
-                .Where(r => r.HotelId == booking.HotelId)
-                .GroupBy(r => r.RoomType.Name)
-                .ToDictionary(g => g.Key, g => g.FirstOrDefault().Price);
-
             var roomGroups = booking.BookingDateRanges
                 .GroupBy(br => br.Room.RoomType.Name)
                 .Select(group => new
                 {
                     RoomType = group.Key,
                     Quantity = group.Count(),
-                    Price = roomPrices.ContainsKey(group.Key) ? roomPrices[group.Key] : 0m
+                    BookedPrice = group.First().BookedPrice
                 })
                 .ToList();
 
             foreach (var roomGroup in roomGroups)
             {
-                var totalRoomPrice = roomGroup.Price * roomGroup.Quantity * (bookingDetailsViewModel.CheckOutDate - bookingDetailsViewModel.CheckInDate).Days;
+                var totalRoomPrice = roomGroup.BookedPrice * roomGroup.Quantity * bookingDetailsViewModel.NumberOfDays;
 
                 bookingDetailsViewModel.RoomDetails.Add(new RoomDetailViewModel
                 {
                     RoomType = roomGroup.RoomType,
                     Quantity = roomGroup.Quantity,
-                    RoomPrice = roomGroup.Price,
+                    BookedPrice = roomGroup.BookedPrice,
                     TotalPrice = totalRoomPrice
                 });
             }

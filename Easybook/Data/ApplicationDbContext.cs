@@ -20,6 +20,7 @@ namespace Easybook.Data
         public DbSet<Image> Images { get; set; }
         public DbSet<HotelFacilities> HotelFacilities { get; set; }
         public DbSet<Status> Statuses { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -107,6 +108,18 @@ namespace Easybook.Data
                 .HasOne(bdr => bdr.Room)
                 .WithMany(r => r.BookingDateRanges)
                 .HasForeignKey(bdr => bdr.RoomId);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Hotel)
+                .WithMany(h => h.Reviews)
+                .HasForeignKey(r => r.HotelId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
 

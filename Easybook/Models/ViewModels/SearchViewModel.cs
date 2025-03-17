@@ -10,6 +10,9 @@ namespace Easybook.Models.ViewModels
         [Required(ErrorMessage = "Моля, изберете дата на напускане.")]
         public DateTime CheckOutDate { get; set; }
 
+        [StringLength(100, ErrorMessage = "Търсенето не може да е по-дълго от 100 символа.")]
+        public string? SearchQuery { get; set; }
+
         [Range(1, 10, ErrorMessage = "Моля, въведете валиден брой възрастни.")]
         public int Adults { get; set; }
 

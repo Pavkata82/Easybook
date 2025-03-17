@@ -24,31 +24,28 @@ namespace Easybook.Controllers
 
         public async Task<IActionResult> Index(SearchViewModel model)
         {
-            // Get today's date and format it
             DateTime today = DateTime.Today;
 
-            // Extract values from model
             DateTime? checkInDate = model.CheckInDate;
             DateTime? checkOutDate = model.CheckOutDate;
             int? adults = model.Adults;
             int? kids = model.Kids;
+            string searchQuery = model.SearchQuery;
 
-            // Validate CheckInDate (cannot be before today)
+            // ✅ Validate CheckInDate and CheckOutDate
             if (checkInDate.HasValue && checkInDate.Value < today)
             {
-                ModelState.AddModelError("checkInDate", "Дата на настаняване не може да бъде в миналото.");
+                ModelState.AddModelError("CheckInDate", "Дата на настаняване не може да бъде в миналото.");
             }
 
-            // Validate CheckOutDate (cannot be before CheckInDate)
             if (checkInDate.HasValue && checkOutDate.HasValue && checkOutDate.Value <= checkInDate.Value)
             {
-                ModelState.AddModelError("checkOutDate", "Дата на напускане не може да бъде преди датата на настаняване.");
+                ModelState.AddModelError("CheckOutDate", "Дата на напускане не може да бъде преди датата на настаняване.");
             }
 
-            // If there are validation errors, return to home view with the error messages
+            // ✅ Handle validation errors
             if (!ModelState.IsValid)
             {
-                // Store the validation errors in TempData
                 foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
                     TempData["ErrorMessages"] = TempData["ErrorMessages"] != null
@@ -56,7 +53,6 @@ namespace Easybook.Controllers
                         : error.ErrorMessage;
                 }
 
-                // Redirect to Home/Index with validation errors stored in TempData
                 return RedirectToAction("Index", "Home");
             }
 
@@ -66,7 +62,14 @@ namespace Easybook.Controllers
                 .Include(h => h.Images)
                 .AsQueryable();
 
-            // Fetch data from the database first, without applying combination check in the query
+            // ✅ Filter by SearchQuery
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                hotelsQuery = hotelsQuery.Where(h =>
+                    h.Name.Contains(searchQuery) ||
+                    h.City.Contains(searchQuery));
+            }
+
             var hotelsData = await hotelsQuery
                 .Select(h => new
                 {
@@ -77,29 +80,28 @@ namespace Easybook.Controllers
                         .Where(img => img.IsMain)
                         .Select(img => img.ImageUrl)
                         .FirstOrDefault() ?? "/images/hotels/default.jpg", // Fallback image
-                    Rooms = h.Rooms.ToList(), // Load rooms with necessary data
+                    Rooms = h.Rooms.ToList(),
                 })
                 .ToListAsync();
 
-            // Filter hotels based on combination logic and room availability
+            // ✅ Filter hotels by available rooms and guests
             if (checkInDate.HasValue && checkOutDate.HasValue && adults.HasValue && kids.HasValue)
             {
                 int totalGuests = adults.Value + kids.Value;
 
-                // Apply combination logic and room availability check in-memory
                 hotelsData = hotelsData.Where(hotel =>
-                    IsCombinationPossible(hotel.Rooms, totalGuests, checkInDate.Value, checkOutDate.Value) // Check combination and availability
+                    IsCombinationPossible(hotel.Rooms, totalGuests, checkInDate.Value, checkOutDate.Value)
                 ).ToList();
             }
 
-            // Map to ViewModel
+            // ✅ Map data to ViewModel
             var hotels = hotelsData.Select(h => new HotelViewModel
             {
                 HotelId = h.HotelId,
                 Name = h.Name,
                 Description = h.Description,
-                ImageUrl = h.Images, // Already set to default if null
-                PricePerNight = h.Rooms.Any() ? h.Rooms.Min(r => r.Price) : 0, // Minimum price of available rooms
+                ImageUrl = h.Images,
+                PricePerNight = h.Rooms.Any() ? h.Rooms.Min(r => r.Price) : 0,
                 RoomTypes = h.Rooms.Select(r => r.RoomType.Name).Distinct().ToList()
             }).ToList();
 
@@ -112,11 +114,20 @@ namespace Easybook.Controllers
             return View(hotelsDatesViewModel);
         }
 
+
         public async Task<IActionResult> Details(int? id, SearchViewModel model)
         {
             if (id == null)
             {
                 return NotFound();
+            }
+
+            // Retrieve the current logged-in user
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                // Handle the case where the user is not logged in
+                return Unauthorized();
             }
 
             // Extract values from model
@@ -129,6 +140,8 @@ namespace Easybook.Controllers
                 .Include(h => h.Rooms)
                     .ThenInclude(r => r.RoomType)
                 .Include(h => h.Images)
+                .Include(h => h.Reviews)  // Include reviews here
+                    .ThenInclude(r => r.User) // Ensure the User is loaded with the Review
                 .FirstOrDefaultAsync(m => m.HotelId == id);
 
             if (hotel == null)
@@ -139,11 +152,17 @@ namespace Easybook.Controllers
             var hotelViewModel = new HotelViewModel
             {
                 HotelId = hotel.HotelId,
+                UserId = userId,
                 Name = hotel.Name,
                 Description = hotel.Description,
-                Images = hotel.Images.Select(img => img.ImageUrl).ToList(),
+                // Sort images by IsMain field (true first)
+                Images = hotel.Images
+                           .OrderByDescending(img => img.IsMain)  // Sort images, putting IsMain=true first
+                           .Select(img => img.ImageUrl)           // Select the ImageUrl for the view model
+                           .ToList(),
                 PricePerNight = hotel.Rooms.Any() ? hotel.Rooms.Min(r => r.Price) : 0m,
                 RoomTypes = hotel.Rooms.Select(r => r.RoomType.Name).Distinct().ToList(),
+                Reviews = hotel.Reviews.ToList()
             };
 
             if (checkInDate.HasValue && checkOutDate.HasValue && adults.HasValue && kids.HasValue)
@@ -153,12 +172,32 @@ namespace Easybook.Controllers
                 // Get both combinations
                 var exactFit = GetRoomCombinations(hotel.Rooms.ToList(), totalGuests, checkInDate.Value, checkOutDate.Value);
 
-
                 hotelViewModel.ExactFitCombination = string.Join(";", exactFit.Select(c => $"{c.RoomTypeName}:{c.RoomCount}"));
             }
 
             return View(hotelViewModel);
         }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> AddReview(Review review, string returnUrl)
+        {
+            if (ModelState.IsValid)
+            {
+                // Add the review to the database
+                _context.Reviews.Add(review);
+                await _context.SaveChangesAsync();
+
+                // Redirect back to the hotel details page (use the returnUrl if provided)
+                return Redirect(returnUrl ?? Url.Action("Details", "Hotel", new { id = review.HotelId }));
+            }
+
+            // If the model state is invalid, return the form again
+            return View();
+        }
+
+
+
 
         [HttpPost]
         public async Task<IActionResult> IsCustomCombinationPossible(int HotelId, Dictionary<string, int> roomTypeCounts, SearchViewModel searchViewModel)
@@ -214,30 +253,18 @@ namespace Easybook.Controllers
         }
 
         //Checks if there is a possible combination for the user's input (used in index method)
-        private bool IsCombinationPossible(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate) 
+        private bool IsCombinationPossible(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
         {
-            // Simplified room combination check logic
+            // Get available rooms for the selected dates
             var availableRooms = rooms
-                .Where(r => IsRoomAvailable(r, checkInDate, checkOutDate)) // Check room availability for the dates
-                .OrderByDescending(r => r.Capacity) // Sort by capacity
+                .Where(r => IsRoomAvailable(r, checkInDate, checkOutDate))
+                .OrderByDescending(r => r.Capacity) // Prioritize larger rooms first
                 .ToList();
 
-            int remainingGuests = totalGuests;
-
-            foreach (var room in availableRooms)
-            {
-                if (remainingGuests <= 0)
-                    break;
-
-                if (room.Capacity <= remainingGuests)
-                {
-                    remainingGuests -= room.Capacity;
-                }
-            }
-
-            return remainingGuests <= 0; // If no remaining guests, the combination is possible
+            // ✅ If any room is available, allow the booking (even if it's larger than the guest count)
+            return availableRooms.Any();
         }
-        
+
         private List<(string RoomTypeName, int RoomCount)>
         GetRoomCombinations(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
         {

@@ -89,6 +89,13 @@
                         </div>
                     </div>
                 }
+                else
+                {
+                    <!-- Message to the user to make their own configuration for the rooms -->
+                    <div class="alert alert-warning">
+                        Няма точна комбинация за избраните от вас параметри. Моля, конфигурирайте вашето собствено настаняване в полето за персонализирана комбинация. 
+                    </div>
+                }
             </div>
 
             <div class="custom-combination">
@@ -133,6 +140,65 @@
             </div>
         </div>
 
+
+        <!-- Reviews Section -->
+        <div class="reviews">
+            <h3>Отзиви</h3>
+
+            @if (Model.Reviews != null && Model.Reviews.Any())
+            {
+                @foreach (var review in Model.Reviews)
+                {
+                    <div class="review-card">
+                        <div class="review-author">
+                            <strong>@review.User.FirstName @review.User.LastName</strong> - @review.CreatedAt.ToString("dd MMM yyyy")
+                        </div>
+                        <div class="review-content">
+                            <p>@review.Comment</p>
+                            <div class="review-rating">
+                                <strong>Рейтинг:</strong> @review.Rating / 5
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Няма отзиви за този хотел.</p>
+            }
+        </div>
+
+        <!-- Add New Review Form -->
+        <div class="add-review">
+            <h3>Добави отзив</h3>
+
+            <form asp-action="AddReview" method="POST">
+                <!-- Rating Input -->
+                <div class="form-group">
+                    <label for="Rating">Рейтинг (1-5):</label>
+                    <input type="number" name="Rating" min="1" max="5" class="form-control" required />
+                </div>
+
+                <!-- Comment Input -->
+                <div class="form-group">
+                    <label for="Comment">Коментар:</label>
+                    <textarea name="Comment" class="form-control" rows="4"></textarea>
+                </div>
+
+                <!-- Hidden HotelId -->
+                <input type="hidden" name="HotelId" value="@Model.HotelId" />
+
+                <!-- Hidden UserId (set current user ID) -->
+                <input type="hidden" name="UserId" value="@Model.UserId"  />
+
+                <!-- Return URL for redirect including query parameters -->
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+
+                <!-- Submit button -->
+                <button type="submit" class="btn btn-primary mt-3">Изпрати отзив</button>
+            </form>
+        </div>
 
     </div>
 </div>

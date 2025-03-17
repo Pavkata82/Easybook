@@ -4,6 +4,7 @@ using Easybook.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Easybook.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250317172919_AddReviewModel2")]
+    partial class AddReviewModel2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -146,7 +149,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("Easybook.Models.BookingDateRange", b =>
@@ -178,7 +181,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.ToTable("BookingDateRanges", (string)null);
+                    b.ToTable("BookingDateRanges");
                 });
 
             modelBuilder.Entity("Easybook.Models.Facility", b =>
@@ -196,7 +199,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasKey("FacilityId");
 
-                    b.ToTable("Facilities", (string)null);
+                    b.ToTable("Facilities");
                 });
 
             modelBuilder.Entity("Easybook.Models.Hotel", b =>
@@ -236,7 +239,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasKey("HotelId");
 
-                    b.ToTable("Hotels", (string)null);
+                    b.ToTable("Hotels");
                 });
 
             modelBuilder.Entity("Easybook.Models.HotelFacilities", b =>
@@ -251,7 +254,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasIndex("FacilityId");
 
-                    b.ToTable("HotelFacilities", (string)null);
+                    b.ToTable("HotelFacilities");
                 });
 
             modelBuilder.Entity("Easybook.Models.Image", b =>
@@ -276,7 +279,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasIndex("HotelId");
 
-                    b.ToTable("Images", (string)null);
+                    b.ToTable("Images");
                 });
 
             modelBuilder.Entity("Easybook.Models.Review", b =>
@@ -311,7 +314,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Easybook.Models.Room", b =>
@@ -341,7 +344,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasIndex("RoomTypeId");
 
-                    b.ToTable("Rooms", (string)null);
+                    b.ToTable("Rooms");
                 });
 
             modelBuilder.Entity("Easybook.Models.RoomType", b =>
@@ -359,7 +362,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasKey("RoomTypeId");
 
-                    b.ToTable("RoomTypes", (string)null);
+                    b.ToTable("RoomTypes");
                 });
 
             modelBuilder.Entity("Easybook.Models.Status", b =>
@@ -376,7 +379,7 @@ namespace Easybook.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Statuses", (string)null);
+                    b.ToTable("Statuses");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

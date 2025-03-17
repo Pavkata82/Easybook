@@ -21,7 +21,7 @@
     {
         public string RoomType { get; set; }
         public int Quantity { get; set; }
-        public decimal RoomPrice { get; set; }
+        public decimal BookedPrice { get; set; }
         public decimal TotalPrice { get; set; }
     }
 }

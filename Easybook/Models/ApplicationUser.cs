@@ -18,5 +18,7 @@ namespace Easybook.Models
 
         // Navigation property to the list of bookings by the user
         public ICollection<Booking> Bookings { get; set; }
+
+        public ICollection<Review> Reviews { get; set; }
     }
 }

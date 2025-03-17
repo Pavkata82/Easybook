@@ -6,6 +6,8 @@ namespace Easybook.Models.ViewModels
     {
         public int HotelId { get; set; }
 
+        public string UserId { get; set; }
+
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
@@ -26,6 +28,7 @@ namespace Easybook.Models.ViewModels
         public List<string> Images { get; set; } = new List<string>();
 
         public string ExactFitCombination { get; set; }
+        public List<Review> Reviews { get; set; } // Add this property
     }
 
 

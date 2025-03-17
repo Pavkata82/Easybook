@@ -31,6 +31,8 @@ namespace Easybook.Models
 
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
+        public ICollection<Review> Reviews { get; set; }
+
         public bool IsActive { get; set; } = true; // Default is active
     }
 

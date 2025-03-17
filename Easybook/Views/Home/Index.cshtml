@@ -48,6 +48,14 @@
 
             <form class="form-container bg-white p-4 rounded shadow" method="GET" action="@Url.Action("Index", "Hotel")">
                 <div class="row g-3 mb-3">
+                    <!-- Search Input for City or Hotel Name -->
+                    <div class="col-12">
+                       <input type="text" class="form-control" id="searchQuery" name="searchQuery"
+                               placeholder="Въведи град или име на хотел..." />
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
                     <div class="col-sm-6">
                         <label for="checkInDate" class="form-label text-dark">Дата на настаняване</label>
                         <input type="date" class="form-control" id="checkInDate" name="checkInDate" required />
@@ -81,6 +89,7 @@
 
                 <button type="submit" class="btn btn-primary w-100 mt-3">Търсене</button>
             </form>
+
 
         </div>
     </div>
