@@ -1,37 +1,47 @@
 ﻿@model IEnumerable<Easybook.Models.ApplicationUser>
 
 @{
-    ViewData["Title"] = "Manage Users";
+    ViewData["Title"] = "Управление на потребители";
     ViewData["ActivePage"] = "ManageUsers";
 }
 
-<h2>Manage Users</h2>
+<h2 class="my-4">Управление на потребители</h2>
 <hr />
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
-        {
+<div class="table-responsive">
+    <table class="table table-hover table-bordered align-middle">
+        <thead class="table-dark">
             <tr>
-                <td>@user.Id</td>
-                <td>@user.FirstName @user.LastName</td>
-                <td>@user.Email</td>
-                <td>@(user.PhoneNumber ?? "N/A")</td>
-                <td>
-                    <a href="@Url.Action("Details", "User", new { id = user.Id, area = "Admin" })" class="btn btn-info btn-sm">
-                        View Details
-                    </a>
-                </td>
+                <th scope="col">Id</th>
+                <th scope="col">Име</th>
+                <th scope="col">Имейл</th>
+                <th scope="col" class="text-center">Действия</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.Select((value, index) => new { value, index }))
+            {
+                <tr>
+                    <td>@(user.value.Id)</td>
+                    <td>@user.value.FirstName @user.value.LastName</td>
+                    <td>@user.value.Email</td>
+                    <td class="text-center">
+                        <a href="@Url.Action("Details", "User", new { id = user.value.Id, area = "Admin" })"
+                           class="btn btn-sm btn-primary me-1">
+                            <i class="bi bi-eye"></i> Детайли
+                        </a>
+                        <a href="@Url.Action("Edit", "User", new { id = user.value.Id, area = "Admin" })"
+                           class="btn btn-sm btn-warning me-1">
+                            <i class="bi bi-pencil"></i> Редактирай
+                        </a>
+                        <form method="post" asp-action="Delete" asp-route-id="@user.value.Id" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Сигурни ли сте, че искате да изтриете този потребител?');">
+                                <i class="bi bi-trash"></i> Изтрий
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

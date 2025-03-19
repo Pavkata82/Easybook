@@ -153,6 +153,62 @@
             box-shadow: none;
         }
 
+.review-card {
+    border: none;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    transition: transform 0.2s ease;
+}
+
+    .review-card:hover {
+        transform: translateY(-3px);
+    }
+
+.review-rating i {
+    font-size: 18px;
+}
+
+.review-header a {
+    color: #007bff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+    .review-header a:hover {
+        text-decoration: underline;
+    }
+
+/* Form Card Styling */
+.add-review .card {
+    border: none;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    transition: transform 0.2s ease;
+}
+
+    .add-review .card:hover {
+        transform: translateY(-3px);
+    }
+
+/* Rating Stars */
+.rating-input .rating-star {
+    font-size: 28px;
+    cursor: pointer;
+    transition: fill 0.2s ease;
+}
+
+/* Textarea Styling */
+textarea.form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s ease;
+}
+
+    textarea.form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 4px rgba(0, 123, 255, 0.25);
+    }
+
 /* Media query for small screens */
 @media (max-width: 768px) {
     .combination {

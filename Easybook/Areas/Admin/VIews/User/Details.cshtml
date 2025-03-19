@@ -1,40 +1,48 @@
 ﻿@model Easybook.Models.ApplicationUser
 
 @{
-    ViewData["Title"] = "User Details";
+    ViewData["Title"] = "Детайли за потребителя";
+
+    var bulgarianTime = TimeZoneInfo.ConvertTimeFromUtc(Model.CreatedOn,
+       TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"));
 }
 
-<h2>User Details</h2>
+<div class="d-flex justify-content-between align-items-center">
+    <h2>Детайли за потребителя</h2>
+    <a href="@Url.Action("Edit", "User", new { id = Model.Id, area = "Admin" })" class="btn btn-warning">Редактирай</a>
+</div>
+
 <hr />
 
 <div class="card mb-3" style="max-width: 600px;">
     <div class="row g-0">
         <div class="col-md-4 text-center">
-            <img src="@Model.ProfilePictureUrl" class="img-fluid rounded-circle mt-3" alt="Profile Picture" style="width: 150px; height: 150px;">
+            <img src="@Model.ProfilePictureUrl" class="img-fluid rounded-circle mt-3" alt="Профилна снимка" style="width: 150px; height: 150px;">
         </div>
         <div class="col-md-8">
             <div class="card-body">
                 <h5 class="card-title">@Model.FirstName @Model.LastName</h5>
-                <p class="card-text"><strong>Email:</strong> @Model.Email</p>
-                <p class="card-text"><strong>Phone:</strong> @(Model.PhoneNumber ?? "N/A")</p>
-                <p class="card-text"><strong>Username:</strong> @Model.UserName</p>
+                <p class="card-text"><strong>Имейл:</strong> @Model.Email</p>
+                <p class="card-text"><strong>Телефон:</strong> @(Model.PhoneNumber ?? "Няма")</p>
+                <p class="card-text"><strong>Потребителско име:</strong> @Model.UserName</p>
+                <p class="card-text"><strong>Създаден на:</strong> @bulgarianTime.ToString("dd.MM.yyyy HH:mm")</p>
             </div>
         </div>
     </div>
 </div>
 
-<h3>Booking History</h3>
+<h3>История на резервациите</h3>
 @if (Model.Bookings != null && Model.Bookings.Any())
 {
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Booking ID</th>
-                <th>Hotel</th>
-                <th>Check-in</th>
-                <th>Check-out</th>
-                <th>Status</th>
-                <th>Details</th>
+                <th>ID на резервация</th>
+                <th>Хотел</th>
+                <th>Настаняване</th>
+                <th>Освобождаване</th>
+                <th>Статус</th>
+                <th>Детайли</th>
             </tr>
         </thead>
         <tbody>
@@ -42,13 +50,13 @@
             {
                 <tr>
                     <td>@booking.BookingId</td>
-                    <td>@(booking.Hotel?.Name ?? "N/A")</td>
+                    <td>@(booking.Hotel?.Name ?? "Няма")</td>
                     <td>@booking.BookingDateRanges.FirstOrDefault()?.StartDate.ToString("dd/MM/yyyy")</td>
                     <td>@booking.BookingDateRanges.FirstOrDefault()?.EndDate.ToString("dd/MM/yyyy")</td>
                     <td>@booking.Status?.Name</td>
                     <td>
                         <a href="@Url.Action("BookingDetails", "Booking", new { id = booking.BookingId, area = "Admin" })" class="btn btn-sm btn-primary">
-                            View
+                            Виж
                         </a>
                     </td>
                 </tr>
@@ -58,7 +66,7 @@
 }
 else
 {
-    <p>No bookings found.</p>
+    <p>Няма намерени резервации.</p>
 }
 
-<a href="@Url.Action("ManageUsers", "User", new { area = "Admin" })" class="btn btn-secondary">Back to Users</a>
+<a href="@Url.Action("ManageUsers", "User", new { area = "Admin" })" class="btn btn-secondary">Обратно към потребителите</a>

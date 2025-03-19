@@ -50,6 +50,77 @@ namespace Easybook.Areas.Admin.Controllers
 
             return View(user);
         }
+        public IActionResult Edit(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+
+            var user = _context.Users.FirstOrDefault(u => u.Id == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(ApplicationUser userModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(userModel);
+            }
+
+            var user = _context.Users.FirstOrDefault(u => u.Id == userModel.Id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Update only specific fields to avoid unintended overwrites
+            user.FirstName = userModel.FirstName;
+            user.LastName = userModel.LastName;
+            user.Email = userModel.Email;
+            user.PhoneNumber = userModel.PhoneNumber;
+
+            try
+            {
+                _context.Update(user);
+                _context.SaveChanges(); // Save changes to the database
+                TempData["SuccessMessage"] = "Потребителят е актуализиран успешно.";
+                return RedirectToAction(nameof(ManageUsers));
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Възникна грешка при актуализиране на потребителя: {ex.Message}");
+                return View(userModel);
+            }
+        }
+
+        public IActionResult Delete(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+            var user = _context.Users.FirstOrDefault(u => u.Id == id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            _context.Users.Remove(user);
+
+            _context.SaveChanges();
+
+            return RedirectToAction(nameof(ManageUsers));
+        }
 
     }
 }

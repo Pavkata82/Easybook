@@ -196,9 +196,6 @@ namespace Easybook.Controllers
             return View();
         }
 
-
-
-
         [HttpPost]
         public async Task<IActionResult> IsCustomCombinationPossible(int HotelId, Dictionary<string, int> roomTypeCounts, SearchViewModel searchViewModel)
         {

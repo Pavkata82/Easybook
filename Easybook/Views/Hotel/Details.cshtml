@@ -5,7 +5,7 @@
     ViewData["Title"] = Model.Name;
 }
 
-<link rel="stylesheet" href="~/css/details-page.css" />
+<link rel="stylesheet" href="~/css/hotel-details-page.css" />
 
 <div class="container my-5">
     <div class="hotel-details">
@@ -142,21 +142,49 @@
 
 
         <!-- Reviews Section -->
-        <div class="reviews">
-            <h3>Отзиви</h3>
+        <div class="reviews mt-5">
+            <h3 class="mb-4">Отзиви</h3>
 
             @if (Model.Reviews != null && Model.Reviews.Any())
             {
                 @foreach (var review in Model.Reviews)
                 {
-                    <div class="review-card">
-                        <div class="review-author">
-                            <strong>@review.User.FirstName @review.User.LastName</strong> - @review.CreatedAt.ToString("dd MMM yyyy")
-                        </div>
-                        <div class="review-content">
-                            <p>@review.Comment</p>
-                            <div class="review-rating">
-                                <strong>Рейтинг:</strong> @review.Rating / 5
+                    <div class="card review-card mb-3 shadow-sm">
+                        <div class="card-body d-flex align-items-start">
+                            <img src="@review.User.ProfilePictureUrl" class="rounded-circle me-3" alt="User Image" style="width: 50px; height: 50px; object-fit: cover;">
+
+                            <div class="review-content">
+                                <div class="review-header d-flex justify-content-between">
+                                    <div>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a href="@Url.Action("Details", "User", new {area = "Admin", id = review.User.Id })" class="fw-bold text-decoration-none text-primary">
+                                                @review.User.FirstName @review.User.LastName
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="fw-bold">@review.User.FirstName @review.User.LastName</span>
+                                        }
+                                        <small class="text-muted"> - @review.CreatedAt.ToString("dd MMM yyyy")</small>
+                                    </div>
+                                </div>
+
+                                <p class="mt-2">@review.Comment</p>
+
+                                <div class="review-rating">
+                                    @for (var i = 1; i <= 5; i++)
+                                    {
+                                        if (i <= review.Rating)
+                                        {
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star text-muted"></i>
+                                        }
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -168,42 +196,55 @@
             }
         </div>
 
+
         <!-- Add New Review Form -->
-        <div class="add-review">
-            <h3>Добави отзив</h3>
+        <div class="add-review mt-5">
+            <h3 class="mb-4">Добави отзив</h3>
 
-            <form asp-action="AddReview" method="POST">
-                <!-- Rating Input -->
-                <div class="form-group">
-                    <label for="Rating">Рейтинг (1-5):</label>
-                    <input type="number" name="Rating" min="1" max="5" class="form-control" required />
-                </div>
+            <div class="card shadow-sm p-4">
+                <form asp-action="AddReview" method="POST" class="needs-validation" novalidate>
+                    <!-- Star Rating Input -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">Рейтинг:</label>
+                        <div class="rating-input d-flex">
+                            @for (var i = 1; i <= 5; i++)
+                            {
+                                <i class="bi bi-star text-secondary rating-star"
+                                   data-value="@i"
+                                   onclick="setRating(@i)"></i>
+                            }
+                        </div>
+                        <input type="hidden" name="Rating" id="rating" value="0" required />
+                        <div class="invalid-feedback">Моля, дайте рейтинг (1-5 звезди).</div>
+                    </div>
 
-                <!-- Comment Input -->
-                <div class="form-group">
-                    <label for="Comment">Коментар:</label>
-                    <textarea name="Comment" class="form-control" rows="4"></textarea>
-                </div>
+                    <!-- Comment Input -->
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="Comment">Коментар:</label>
+                        <textarea name="Comment" id="Comment" class="form-control" rows="4" placeholder="Споделете своя опит..." required></textarea>
+                        <div class="invalid-feedback">Моля, въведете коментар.</div>
+                    </div>
 
-                <!-- Hidden HotelId -->
-                <input type="hidden" name="HotelId" value="@Model.HotelId" />
+                    <!-- Hidden HotelId -->
+                    <input type="hidden" name="HotelId" value="@Model.HotelId" />
 
-                <!-- Hidden UserId (set current user ID) -->
-                <input type="hidden" name="UserId" value="@Model.UserId"  />
+                    <!-- Hidden UserId -->
+                    <input type="hidden" name="UserId" value="@Model.UserId" />
 
-                <!-- Return URL for redirect including query parameters -->
-                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                    <!-- Return URL for redirect including query parameters -->
+                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
-
-                <!-- Submit button -->
-                <button type="submit" class="btn btn-primary mt-3">Изпрати отзив</button>
-            </form>
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary w-100 mt-2">Изпрати отзив</button>
+                </form>
+            </div>
         </div>
+
 
     </div>
 </div>
 
-<script>
+<script type="text/javascript">
     function increaseRoomCount(roomType) {
         var countElement = document.getElementById("count-" + roomType);
         var inputElement = document.getElementById("input-" + roomType);
@@ -221,4 +262,51 @@
             inputElement.value = currentCount - 1;
         }
     }
+
+    function setRating(rating) {
+        // Get the current rating from the hidden input
+        const currentRating = parseInt(document.getElementById('rating').value);
+
+        // If the clicked rating is the same as the current rating, reset the rating (deselect all stars)
+        if (currentRating === rating) {
+            rating = 0; // Deselect all stars
+        }
+
+        // Set the new rating value to the hidden input
+        document.getElementById('rating').value = rating;
+
+        // Get all star icons
+        const stars = document.querySelectorAll('.rating-star');
+
+        // Loop through each star to update its appearance
+        stars.forEach((star, index) => {
+            if (index + 1 <= rating) { // Fill stars up to the selected rating
+                // Filled star
+                star.classList.remove('bi-star');
+                star.classList.add('text-warning');
+                star.classList.add('bi-star-fill');
+            } else {
+                // Empty star
+                star.classList.remove('bi-star-fill');
+                star.classList.remove('text-warning');
+                star.classList.add('bi-star');
+            }
+        });
+    }
+
+    // Form validation on submit
+    (function () {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+
+        Array.from(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
 </script>

@@ -16,9 +16,11 @@ namespace Easybook.Models
         // Add the ProfilePictureUrl property
         public string ProfilePictureUrl { get; set; } = "/images/users/default.jpg";
 
-        // Navigation property to the list of bookings by the user
-        public ICollection<Booking> Bookings { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
-        public ICollection<Review> Reviews { get; set; }
+        // Navigation property to the list of bookings by the user
+        public virtual ICollection<Booking>? Bookings { get; set; }
+
+        public virtual ICollection<Review>? Reviews { get; set; }
     }
 }
