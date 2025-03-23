@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Easybook.Models;
+using System.ComponentModel.DataAnnotations;
 
-namespace Easybook.Models.ViewModels
+namespace Easybook.Areas.Admin.Models.ViewModels
 {
     public class HotelCreateViewModel
     {
@@ -52,8 +53,7 @@ namespace Easybook.Models.ViewModels
         public decimal FamilyRoomPrice { get; set; }
 
         // Images
-        [Required(ErrorMessage = "Моля изберете поне една снимка.")]
-        public List<IFormFile> Images { get; set; }
+        public List<IFormFile>? Images { get; set; }
 
         
         [Range(0, int.MaxValue, ErrorMessage = "Изберете валиден индекс за основното изображение.")]

@@ -19,22 +19,31 @@ namespace Easybook.Areas.Admin.Controllers
             _context = context;
         }
 
-        public IActionResult ManageBookings()
+        public IActionResult ManageBookings(string bookingId = null)
         {
-            // Retrieve bookings from the database
+            // Retrieve all bookings from the database and order them
             var bookings = _context.Bookings
                 .Include(b => b.User) // Include related User data (if needed)
                 .Include(b => b.Hotel) // Include related Hotel data (if needed)
                 .Include(b => b.Status) // Include related Status data
                 .Include(b => b.BookingDateRanges)
                 .OrderByDescending(b => b.BookingId)
-                .ToList();
+                .ToList(); // Convert to list first
+
+            // If a bookingId is provided, filter the bookings by that ID
+            if (!string.IsNullOrEmpty(bookingId))
+            {
+                bookings = bookings.Where(b => b.BookingId.ToString().Contains(bookingId)).ToList();
+            }
 
             // Populate the dropdown with status options
             ViewBag.Statuses = _context.Statuses.ToList();
 
             return View(bookings); // Pass the data to the view
         }
+
+
+
 
 
         public IActionResult BookingDetails(int id)

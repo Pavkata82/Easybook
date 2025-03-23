@@ -1,4 +1,4 @@
-﻿@model Easybook.Models.ApplicationUser
+﻿@model Easybook.Areas.Admin.Models.ViewModels.UserEditViewModel
 
 @{
     ViewData["Title"] = "Редактиране на потребител";
@@ -12,7 +12,7 @@
     <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
 }
 
-<form asp-action="Edit" method="post" class="mt-4">
+<form asp-action="Edit" method="post" class="mt-4" enctype="multipart/form-data">
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
@@ -39,6 +39,22 @@
         <span asp-validation-for="PhoneNumber" class="text-danger"></span>
     </div>
 
+    <div class="mb-3">
+        <label class="form-label">Текуща профилна снимка</label>
+        <br />
+        <img src="@Model.ProfilePicture" alt="Профилна снимка" class="img-thumbnail" width="150" id="currentProfilePicture" />
+    </div>
+
+    <div class="mb-3">
+        <label for="NewProfilePicture">Нова профилна снимка</label>
+        <input type="file" class="form-control" id="NewProfilePicture" name="NewProfilePicture" accept="image/*" />
+        <span asp-validation-for="NewProfilePicture" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3" id="imagePreviewContainer">
+        <!-- Image preview will be appended here -->
+    </div>
+
     <div class="mt-3">
         <button type="submit" class="btn btn-primary">
             <i class="bi bi-save"></i> Запази
@@ -46,6 +62,45 @@
         <a href="javascript:history.back()" class="btn btn-secondary">
             <i class="bi bi-arrow-left"></i> Назад
         </a>
-
     </div>
 </form>
+
+<script>
+    document.getElementById('NewProfilePicture').addEventListener('change', (event) => {
+        const files = event.target.files;
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+        // Clear the existing preview container
+        imagePreviewContainer.innerHTML = '';
+
+        // If files are selected
+        if (files.length) {
+            [...files].forEach(file => {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    // Create image element for preview
+                    const imageContainer = document.createElement('div');
+                    imageContainer.classList.add('existing-image');
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'New Image';
+                    img.classList.add('img-thumbnail'); // Add thumbnail class for styling
+
+                    // Add custom class for size control
+                    img.style.maxWidth = '150px';   // Set max width
+                    img.style.maxHeight = '150px';  // Set max height
+
+                    // Append image to container
+                    imageContainer.appendChild(img);
+                    imagePreviewContainer.appendChild(imageContainer);
+                };
+
+                // Read file as data URL (for image preview)
+                reader.readAsDataURL(file);
+            });
+        }
+    });
+</script>
+

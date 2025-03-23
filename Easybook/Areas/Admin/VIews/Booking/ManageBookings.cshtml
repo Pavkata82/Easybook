@@ -8,6 +8,18 @@
 <h2>Управление на Резервации</h2>
 <p>Тук можете да одобрите, отмените или редактирате резервации.</p>
 
+<!-- Search Form -->
+<form method="get" class="mb-3">
+    <div class="d-flex justify-content-between">
+        <div class="input-group">
+            <input type="text" class="form-control" name="bookingId" placeholder="Търсене по Резервационен ID" value="@Context.Request.Query["bookingId"]" />
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-search"></i> Търси
+            </button>
+        </div>
+    </div>
+</form>
+
 <!-- Table for listing bookings -->
 <div class="row">
     <div class="col-12">

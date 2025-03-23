@@ -33,9 +33,9 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-white @(ViewData["ActivePage"]?.ToString() == "Settings" ? "active bg-primary" : "")"
-               href="#">
-                <i class="bi bi-gear"></i> Настройки
+            <a class="nav-link text-white @(ViewData["ActivePage"]?.ToString() == "ManageReviews" ? "active bg-primary" : "")"
+               asp-area="Admin" asp-controller="Review" asp-action="ManageReviews">
+                <i class="bi bi-chat-dots"></i> Управление на отзиви
             </a>
         </li>
     </ul>

@@ -1,4 +1,5 @@
-﻿using Easybook.Constants;
+﻿using Easybook.Areas.Admin.Models.ViewModels;
+using Easybook.Constants;
 using Easybook.Data;
 using Easybook.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -19,10 +20,23 @@ namespace Easybook.Areas.Admin.Controllers
             _context = context;
         }
 
-        public IActionResult ManageUsers()
+        public IActionResult ManageUsers(string searchQuery = null)
         {
-            var users = _context.Users.ToList(); // Fetch all users
-            return View(users);
+            var usersQuery = _context.Users.AsQueryable(); // Start with all users
+
+            // If a search query is provided, filter the users by name or email
+            if (!string.IsNullOrEmpty(searchQuery))
+            {
+                usersQuery = usersQuery.Where(u =>
+                    u.FirstName.Contains(searchQuery) ||
+                    u.LastName.Contains(searchQuery) ||
+                    u.Email.Contains(searchQuery)
+                );
+            }
+
+            var users = usersQuery.ToList(); // Execute the query and get the list of users
+
+            return View(users); // Pass the filtered users to the view
         }
 
         public IActionResult Details(string id)
@@ -64,44 +78,85 @@ namespace Easybook.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            return View(user);
+            var userEditViewModel = new UserEditViewModel
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ProfilePicture = user.ProfilePictureUrl
+            };
+
+            return View(userEditViewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(ApplicationUser userModel)
+        public async Task<IActionResult> Edit(UserEditViewModel userEditViewModel)
         {
             if (!ModelState.IsValid)
             {
-                return View(userModel);
+                return View(userEditViewModel);
             }
 
-            var user = _context.Users.FirstOrDefault(u => u.Id == userModel.Id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userEditViewModel.Id);
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            // Update only specific fields to avoid unintended overwrites
-            user.FirstName = userModel.FirstName;
-            user.LastName = userModel.LastName;
-            user.Email = userModel.Email;
-            user.PhoneNumber = userModel.PhoneNumber;
+            // Update the user's fields
+            user.FirstName = userEditViewModel.FirstName;
+            user.LastName = userEditViewModel.LastName;
+            user.Email = userEditViewModel.Email;
+            user.PhoneNumber = userEditViewModel.PhoneNumber;
+
+
+            // Handle profile picture upload if a new one is provided
+            if (userEditViewModel.NewProfilePicture != null)
+            {
+                // Check if the user already has a profile picture and if it's not the default
+                if (user.ProfilePictureUrl != "/images/users/default.jpg")
+                {
+                    // Delete the old profile picture from the server if it's not the default
+                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", user.ProfilePictureUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
+
+                // Save the new profile picture
+                var fileExtension = Path.GetExtension(userEditViewModel.NewProfilePicture.FileName);
+                var fileName = $"{Guid.NewGuid()}_{fileExtension}";
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users", fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await userEditViewModel.NewProfilePicture.CopyToAsync(stream);
+                }
+
+                // Update the profile picture URL in the user record
+                user.ProfilePictureUrl = $"/images/users/{fileName}";
+            }
 
             try
             {
                 _context.Update(user);
-                _context.SaveChanges(); // Save changes to the database
+                await _context.SaveChangesAsync(); // Save changes to the database
                 TempData["SuccessMessage"] = "Потребителят е актуализиран успешно.";
                 return RedirectToAction(nameof(ManageUsers));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"Възникна грешка при актуализиране на потребителя: {ex.Message}");
-                return View(userModel);
+                ModelState.AddModelError("", $"Възникна грешка при актуализирането на потребителя: {ex.Message}");
+                return View(userEditViewModel);
             }
         }
+
+
 
         public IActionResult Delete(string id)
         {

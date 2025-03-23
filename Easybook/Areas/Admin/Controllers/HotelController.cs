@@ -1,7 +1,6 @@
 ﻿using Easybook.Areas.Admin.Models.ViewModels;
 using Easybook.Data;
 using Easybook.Models;
-using Easybook.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,11 +23,21 @@ namespace Easybook.Areas.Admin.Controllers
             _userManager = userManager;
         }
 
-        public IActionResult ManageHotels()
+        public IActionResult ManageHotels(string hotelId = null)
         {
-            var hotels = _context.Hotels.ToList(); // Get all hotels from the database
-            return View(hotels); // Pass the hotels to the view
+            var hotelsQuery = _context.Hotels.AsQueryable(); // Start with all hotels
+
+            // If a hotelId is provided, filter the hotels by that ID
+            if (!string.IsNullOrEmpty(hotelId))
+            {
+                hotelsQuery = hotelsQuery.Where(h => h.HotelId.ToString().Contains(hotelId));
+            }
+
+            var hotels = hotelsQuery.ToList(); // Execute the query and get the list of hotels
+
+            return View(hotels); // Pass the filtered hotels to the view
         }
+
 
         public IActionResult Create()
         {
@@ -127,6 +136,17 @@ namespace Easybook.Areas.Admin.Controllers
 
                         _context.Images.Add(image);
                     }
+                }
+                else
+                {
+                    var image = new Image
+                    {
+                        HotelId = hotel.HotelId,
+                        ImageUrl = "/images/hotels/default.jpg", // Default image
+                        IsMain = true
+                    };
+
+                    _context.Images.Add(image);
                 }
 
                 await _context.SaveChangesAsync();
@@ -258,13 +278,32 @@ namespace Easybook.Areas.Admin.Controllers
 
 
 
-            // Remove deleted images
+            // Remove deleted images (both from the database and the filesystem)
             var imagesForDeletion = model.ImagesForDeletion?.Split(',').Select(int.Parse).ToList();
             if (imagesForDeletion != null)
             {
                 var imagesToDelete = hotel.Images.Where(i => imagesForDeletion.Contains(i.ImageId)).ToList();
-                _context.Images.RemoveRange(imagesToDelete);
+
+                foreach (var image in imagesToDelete)
+                {
+                    // Get the full path to the image file
+                    var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('/'));
+
+                    // Check if the file exists before attempting to delete it
+                    if (System.IO.File.Exists(imagePath) && image.ImageUrl != "/images/hotels/default.jpg")
+                    {
+                        // Delete the image file from the filesystem
+                        System.IO.File.Delete(imagePath);
+                    }
+
+                    // Remove the image record from the database
+                    _context.Images.Remove(image);
+                }
+
+                // Save changes to remove the image records from the database
+                await _context.SaveChangesAsync();
             }
+
 
             // Add new images
             if (model.NewImages != null && model.NewImages.Any())
@@ -365,18 +404,21 @@ namespace Easybook.Areas.Admin.Controllers
             // Delete related facilities
             _context.HotelFacilities.RemoveRange(hotel.HotelFacilities);
 
-            // Delete related images from the filesystem
+            // Delete related images from the filesystem (skip the default image)
             foreach (var image in hotel.Images)
             {
                 var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('/')); // Get full path from the relative URL
-                if (System.IO.File.Exists(imagePath))
+
+                // Prevent deletion of the default image
+                if (image.ImageUrl != "/images/hotels/default.jpg" && System.IO.File.Exists(imagePath))
                 {
                     System.IO.File.Delete(imagePath); // Delete the file from the file system
                 }
             }
 
-            // Delete related images
-            _context.Images.RemoveRange(hotel.Images);
+            // Delete related images from the database (except the default image)
+            var imagesToDelete = hotel.Images.Where(image => image.ImageUrl != "/images/hotels/default.jpg").ToList();
+            _context.Images.RemoveRange(imagesToDelete);
 
             // Delete related bookings (if necessary)
             _context.Bookings.RemoveRange(hotel.Bookings);
@@ -389,6 +431,7 @@ namespace Easybook.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(ManageHotels)); // Redirect to manage hotels page after deletion
         }
+
 
         // Helper method to update room info
         private void UpdateRoomInfo(Hotel hotel, HotelEditViewModel model)

@@ -149,7 +149,22 @@
             {
                 @foreach (var review in Model.Reviews)
                 {
-                    <div class="card review-card mb-3 shadow-sm">
+                    <div class="card review-card mb-3 shadow-sm position-relative">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <!-- Admin Controls: Details and Delete buttons -->
+                            <div class="admin-controls position-absolute top-0 end-0 p-2">
+                                <a href="@Url.Action("Details", "Review", new { id = review.ReviewId, area = "Admin" })" class="btn btn-info btn-sm me-2">
+                                    <i class="bi bi-eye"></i> Детайли
+                                </a>
+                                <form method="post" asp-action="Delete" asp-controller="Review" asp-area="Admin" asp-route-id="@review.ReviewId" class="d-inline" onsubmit="return confirm('Сигурни ли сте, че искате да изтриете този отзив?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Изтрий
+                                    </button>
+                                </form>
+                            </div>
+                        }
+
                         <div class="card-body d-flex align-items-start">
                             <img src="@review.User.ProfilePictureUrl" class="rounded-circle me-3" alt="User Image" style="width: 50px; height: 50px; object-fit: cover;">
 
@@ -195,6 +210,7 @@
                 <p>Няма отзиви за този хотел.</p>
             }
         </div>
+
 
 
         <!-- Add New Review Form -->
