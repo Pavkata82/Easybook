@@ -38,6 +38,7 @@ namespace Easybook.Services
                 Mode = "payment",
                 SuccessUrl = successUrl,
                 CancelUrl = cancelUrl,
+                Locale = "bg",
                 Metadata = new Dictionary<string, string>
                 {
                     { "bookingId", bookingId.ToString() }  // Pass the bookingId in metadata

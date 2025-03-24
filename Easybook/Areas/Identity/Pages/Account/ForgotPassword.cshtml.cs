@@ -77,7 +77,28 @@ namespace Easybook.Areas.Identity.Pages.Account
                 await _emailSender.SendEmailAsync(
                     Input.Email,
                     "Смяна на паролата",
-                    $"Моля променете паролата си като <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>кликнете тук</a>.");
+                    $@"
+                    <html>
+                        <body style=""font-family: Arial, sans-serif; color: #333; margin: 0; padding: 0;"">
+                            <div style=""max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; border-radius: 8px;"">
+                                <h2 style=""color: #4CAF50; text-align: center;"">Забравена парола - Easybook</h2>
+                                <p style=""font-size: 16px; line-height: 1.5; text-align: center;"">Моля, променете паролата си, като кликнете върху линка по-долу:</p>
+                    
+                                <!-- Center the button and add padding and margin for spacing -->
+                                <div style=""text-align: center; margin-top: 20px;"">
+                                    <a href=""{HtmlEncoder.Default.Encode(callbackUrl)}"" style=""background-color: #4CAF50; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-size: 16px; display: inline-block;"">Променете паролата си</a>
+                                </div>
+                    
+                                <p style=""font-size: 16px; line-height: 1.5; text-align: center; margin-top: 20px;"">Ако не сте поискали смяна на паролата, можете да игнорирате този имейл.</p>
+                    
+                                <!-- Footer section with a smaller font size and spacing -->
+                                <footer style=""margin-top: 40px; text-align: center; color: #777; font-size: 14px; line-height: 1.5;"">
+                                    <p>С уважение, <br>Екипът на Easybook</p>
+                                </footer>
+                            </div>
+                        </body>
+                    </html>"
+                );
 
                 return RedirectToPage("./ForgotPasswordConfirmation");
             }

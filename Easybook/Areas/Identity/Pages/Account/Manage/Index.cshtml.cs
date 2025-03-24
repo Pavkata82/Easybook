@@ -159,6 +159,7 @@ namespace Easybook.Areas.Identity.Pages.Account.Manage
             StatusMessage = "Профилът ви беше актуализиран.";
             return RedirectToPage();
         }
+        
 
     }
 }

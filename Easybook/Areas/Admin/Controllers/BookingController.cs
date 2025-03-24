@@ -2,7 +2,10 @@
 using Easybook.Constants;
 using Easybook.Data;
 using Easybook.Models;
+using Easybook.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,10 +16,13 @@ namespace Easybook.Areas.Admin.Controllers
     public class BookingController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailSender _emailSender;
 
-        public BookingController(ApplicationDbContext context)
+
+        public BookingController(ApplicationDbContext context, IEmailSender emailSender)
         {
             _context = context;
+            _emailSender = emailSender;
         }
 
         public IActionResult ManageBookings(string bookingId = null)
@@ -41,10 +47,6 @@ namespace Easybook.Areas.Admin.Controllers
 
             return View(bookings); // Pass the data to the view
         }
-
-
-
-
 
         public IActionResult BookingDetails(int id)
         {
@@ -109,13 +111,12 @@ namespace Easybook.Areas.Admin.Controllers
             return View(bookingDetailsViewModel);
         }
 
-
-
         [HttpPost]
-        public IActionResult UpdateBookingStatus(int bookingId, int statusId)
+        public async Task<IActionResult> UpdateBookingStatus(int bookingId, int statusId)
         {
             var booking = _context.Bookings
                 .Include(b => b.Status)
+                .Include(b => b.User) // Include user to get the email
                 .FirstOrDefault(b => b.BookingId == bookingId);
 
             if (booking != null)
@@ -127,6 +128,27 @@ namespace Easybook.Areas.Admin.Controllers
                 {
                     booking.StatusId = selectedStatus.Id;
                     _context.SaveChanges();
+
+                    // Send email notification to the user
+                    var userEmail = booking.User.Email;
+                    var subject = "Статусът на вашата резервация е актуализиран";
+                    var message = $@"
+                        <html>
+                            <body>
+                                <h2 style='color: #4CAF50;'>Статусът на вашата резервация е актуализиран!</h2>
+                                <p>Вашата резервация с ID <strong>{bookingId}</strong> е актуализирана до: <strong>{selectedStatus.Name}</strong></p>
+                                <p>Благодарим ви, че избрахте Easybook!</p>
+                                <footer style='margin-top: 20px;'>
+                                    <p>С уважение,<br>Екипът на Easybook</p>
+                                </footer>
+                            </body>
+                        </html>
+                    ";
+
+                    if (!string.IsNullOrEmpty(userEmail))
+                    {
+                        await _emailSender.SendEmailAsync(userEmail, subject, message);
+                    }
                 }
             }
 
@@ -142,6 +164,7 @@ namespace Easybook.Areas.Admin.Controllers
             // Redirect to the BookingDetails page with the bookingId as a query parameter
             return RedirectToAction("BookingDetails", "Booking", new { area = "Admin", id = bookingId });
         }
+
 
         [HttpPost]
         public IActionResult Delete(int id)
