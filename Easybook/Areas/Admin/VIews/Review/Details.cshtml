@@ -16,6 +16,9 @@
     <div class="card-body">
         <h5 class="card-title">Информация за отзива</h5>
         <p><strong>Име на потребителя:</strong> @Model.User.UserName</p>
+        <a href="@Url.Action("Details", "User", new { area = "Admin", id = Model.UserId })" class="btn btn-info btn-sm">
+            <i class="bi bi-person-lines-fill"></i> Управление на потребителя
+        </a>
         <p><strong>Рейтинг:</strong> @Model.Rating</p>
         <p><strong>Дата на отзив:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy")</p>
         <p><strong>Коментар:</strong> @Model.Comment</p>
