@@ -1,0 +1,260 @@
+﻿@model Easybook.Models.Hotel
+
+@{
+    ViewData["Title"] = "Детайли за хотел";
+}
+
+<style>
+    /* Ограничаване на размера на главната снимка на страницата */
+    #main-image {
+        max-width: 100%; /* Гарантира, че снимката няма да надвиши ширината на контейнера */
+        max-height: 300px; /* Задава максимална височина */
+        object-fit: contain; /* Запазва пропорциите на снимката без изкривяване */
+        margin: 0 auto; /* Центрира снимката */
+        display: block;
+    }
+
+    /* Ограничаване на размера на снимките вътре в модала */
+    .modal-body img {
+        max-height: 400px; /* Настройте стойността, за да съвпадне с вашия дизайн */
+        object-fit: contain; /* Гарантира, че цялата снимка е видима без изкривяване */
+        margin-bottom: 1rem;
+        width: 100%; /* Гарантира, че снимката запълва ширината на модала */
+    }
+
+    /* Стилове за секцията с информация за хотела */
+    .hotel-info {
+        margin-bottom: 2rem;
+    }
+
+        .hotel-info .card-header {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .hotel-info .card-body {
+            background-color: #f8f9fa;
+        }
+
+    /* Стилове за секцията със снимки на хотела */
+    .hotel-images {
+        margin-bottom: 2rem;
+    }
+
+        .hotel-images .card-header {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .hotel-images .card-body {
+            background-color: #f8f9fa;
+        }
+
+    /* Стилове за секциите с удобства, стаи и рецензии */
+    .section-card {
+        margin-bottom: 2rem;
+    }
+
+        .section-card .card-header {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .section-card .card-body {
+            background-color: #f8f9fa;
+        }
+
+    .table th, .table td {
+        text-align: center;
+    }
+
+    /* Стил за бутона за връщане */
+    .back-button {
+        margin-top: 3rem;
+        text-align: center;
+    }
+</style>
+
+<div class="container">
+    <div class="d-flex flex-column justify-content-center align-items-center">
+        <h2 class="text-center mb-4">@Model.Name</h2>
+
+        <a href="@Url.Action("Edit", "Hotel", new {id = Model.HotelId})" class="btn btn-warning text-center mb-4">Редактиране</a>
+    </div>
+
+    <!-- Секция с информация за хотела -->
+    <div class="hotel-info row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5>Информация за хотела</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Име на хотела:</strong> @Model.Name</li>
+                        <li><strong>Адрес:</strong> @Model.Address</li>
+                        <li><strong>Град:</strong> @Model.City</li>
+                        <li><strong>Държава:</strong> @Model.Country</li>
+                        <li><strong>Описание:</strong> @Model.Description</li>
+                        <li><strong>Статус:</strong> @(Model.IsActive ? "Активен" : "Неактивен")</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Секция със снимки на хотела -->
+        <div class="col-md-6 hotel-images">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5>Снимки на хотела</h5>
+                </div>
+                <div class="card-body text-center">
+                    @if (Model.Images.Any())
+                    {
+                        <div class="mb-3">
+                            <!-- Главната снимка, която отваря модала -->
+                            <img src="@Model.Images.First().ImageUrl" id="main-image" style="cursor: pointer;" alt="Снимка на хотел" class="img-fluid rounded shadow-sm" data-bs-toggle="modal" data-bs-target="#imageModal" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модал за снимки -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Снимки на хотела</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Карусел за снимките -->
+                    <div id="carouselExample" class="carousel carousel-dark slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            @foreach (var (image, index) in Model.Images.Select((value, i) => (value, i)))
+                            {
+                                <div class="carousel-item @(index == 0 ? "active" : "")">
+                                    <img src="@image.ImageUrl" class="d-block w-100" alt="Снимка на хотел @index">
+                                </div>
+                            }
+                        </div>
+                        <!-- Контроли за карусела -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Предишен</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Следващ</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Удобства на хотела -->
+    <div class="section-card card shadow-sm">
+        <div class="card-header">
+            <h5>Удобства</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Удобство</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var facility in Model.HotelFacilities)
+                    {
+                        <tr>
+                            <td>@facility.Facility.Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Видове стаи и наличности -->
+    <div class="section-card card shadow-sm">
+        <div class="card-header">
+            <h5>Стаи и наличности</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Вид стая</th>
+                        <th>Налични стаи</th>
+                        <th>Цена на нощувка</th> <!-- Добавяме колона за цената -->
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var roomType in Model.Rooms.GroupBy(r => r.RoomType))
+                    {
+                        <tr>
+                            <td>@roomType.Key.Name</td>
+                            <td>@roomType.Count()</td>
+                            <td>@($"{roomType.First().Price.ToString("C", new System.Globalization.CultureInfo("bg-BG"))}")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Отзиви -->
+    <div class="section-card card shadow-sm">
+        <div class="card-header">
+            <h5>Отзиви</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Reviews.Any())
+            {
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Потребител</th>
+                            <th>Оценка</th>
+                            <th>Коментар</th>
+                            <th>Дата на публикуване</th>
+                            <th>Връзка</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var review in Model.Reviews)
+                        {
+                            <tr>
+                                <td>@review.User?.UserName</td>
+                                <td>@review.Rating</td>
+                                <td>@review.Comment</td>
+                                <td>@review.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <th>
+                                    <a href="@Url.Action("Details", "Review", new { id = review.ReviewId, area = "Admin" })"
+                                       class="btn btn-sm btn-info me-1">
+                                        <i class="bi bi-eye"></i> Детайли
+                                    </a>
+                                </th>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>Все още няма отзиви.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Връщане към списъка с хотели -->
+    <div class="back-button">
+        <a href="@Url.Action("ManageHotels", "Hotel", new { area = "Admin" })" class="btn btn-secondary btn-lg">
+            <i class="bi bi-arrow-left-circle"></i> Върни се към списъка с хотели
+        </a>
+    </div>
+</div>

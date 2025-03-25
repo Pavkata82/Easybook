@@ -22,8 +22,10 @@ namespace Easybook.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(SearchViewModel model)
+        public async Task<IActionResult> Index(SearchViewModel model, int page = 1)
         {
+            int pageSize = 3; // Number of results per page
+
             DateTime today = DateTime.Today;
 
             DateTime? checkInDate = model.CheckInDate;
@@ -94,8 +96,16 @@ namespace Easybook.Controllers
                 ).ToList();
             }
 
+            // ✅ Paginate the hotels data
+            var totalHotels = hotelsData.Count;
+            var totalPages = (int)Math.Ceiling(totalHotels / (double)pageSize);
+            var pagedHotels = hotelsData
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
             // ✅ Map data to ViewModel
-            var hotels = hotelsData.Select(h => new HotelViewModel
+            var hotels = pagedHotels.Select(h => new HotelViewModel
             {
                 HotelId = h.HotelId,
                 Name = h.Name,
@@ -108,13 +118,16 @@ namespace Easybook.Controllers
             var hotelsDatesViewModel = new HotelsDatesViewModel
             {
                 Hotels = hotels,
-                SearchParams = model
+                SearchParams = model,
+                CurrentPage = page,
+                TotalPages = totalPages
             };
 
             return View(hotelsDatesViewModel);
         }
 
 
+        [Authorize]
         public async Task<IActionResult> Details(int? id, SearchViewModel model)
         {
             if (id == null)
@@ -142,6 +155,8 @@ namespace Easybook.Controllers
                 .Include(h => h.Images)
                 .Include(h => h.Reviews)  // Include reviews here
                     .ThenInclude(r => r.User) // Ensure the User is loaded with the Review
+                .Include(h => h.HotelFacilities) // Include HotelFacilities here
+                    .ThenInclude(hf => hf.Facility) // Include related Facility for each HotelFacility
                 .FirstOrDefaultAsync(m => m.HotelId == id);
 
             if (hotel == null)
@@ -149,20 +164,24 @@ namespace Easybook.Controllers
                 return NotFound();
             }
 
+            // Create the view model
             var hotelViewModel = new HotelViewModel
             {
                 HotelId = hotel.HotelId,
                 UserId = userId,
                 Name = hotel.Name,
                 Description = hotel.Description,
-                // Sort images by IsMain field (true first)
                 Images = hotel.Images
                            .OrderByDescending(img => img.IsMain)  // Sort images, putting IsMain=true first
                            .Select(img => img.ImageUrl)           // Select the ImageUrl for the view model
                            .ToList(),
                 PricePerNight = hotel.Rooms.Any() ? hotel.Rooms.Min(r => r.Price) : 0m,
                 RoomTypes = hotel.Rooms.Select(r => r.RoomType.Name).Distinct().ToList(),
-                Reviews = hotel.Reviews.ToList()
+                Reviews = hotel.Reviews.ToList(),
+                HotelFacilities = hotel.HotelFacilities.Select(hf => hf.Facility).ToList(), // Map HotelFacilities to Facility list
+                RoomTypePrices = hotel.Rooms
+                    .GroupBy(r => r.RoomType.Name)
+                    .ToDictionary(g => g.Key, g => g.Min(r => r.Price)) // Group by RoomType and get the minimum price for each type
             };
 
             if (checkInDate.HasValue && checkOutDate.HasValue && adults.HasValue && kids.HasValue)

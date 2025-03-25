@@ -16,9 +16,10 @@
                     @foreach (var imageUrl in Model.Images)
                     {
                         <div class="carousel-item @(Model.Images.IndexOf(imageUrl) == 0 ? "active" : "")">
-                            <img src="@imageUrl" class="d-block w-100" alt="Hotel Image">
+                            <img src="@imageUrl" class="d-block w-100" alt="Hotel Image" onclick="openModal('@imageUrl')">
                         </div>
                     }
+
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#hotelImageCarousel" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -31,21 +32,78 @@
             </div>
         </div>
 
+        <!-- Modal for full-size carousel -->
+        <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="imageModalLabel">Изображения на хотела</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullImageCarousel" class="carousel carousel-dark slide" data-bs-ride="carousel">
+                            <div class="carousel-inner" id="carouselImagesContainer">
+                                <!-- Carousel items will be dynamically inserted here -->
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#fullImageCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#fullImageCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <h2>@Model.Name</h2>
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="@Url.Action("Edit", "Hotel", new { id = Model.HotelId, area = "Admin" })" class="btn btn-sm btn-warning me-1"><i class="bi bi-pencil"></i> Редактиране</a>
+
+            <a href="@Url.Action("Details", "Hotel", new { id = Model.HotelId, area = "Admin" })" class="btn btn-sm btn-info me-1"><i class="bi bi-eye"></i> Детайли</a>
+        }
+
         <p class="hotel-description">@Model.Description</p>
+
+        <!-- Hotel Facilities Section -->
+        <div class="hotel-facilities mt-4">
+            <h3>Удобства</h3>
+            <div class="d-flex flex-wrap">
+                @foreach (var hotelFacility in Model.HotelFacilities)
+                {
+                    <span class="badge bg-secondary rounded-pill me-2 mb-2">
+                        @hotelFacility.Name
+                    </span>
+                }
+            </div>
+        </div>
 
         <div class="hotel-info">
             <div class="room-types">
                 <strong>Видове стаи:</strong>
                 @if (Model.RoomTypes != null && Model.RoomTypes.Any())
                 {
-                    @string.Join(", ", Model.RoomTypes)
+                    <ul>
+                        @foreach (var roomType in Model.RoomTypes)
+                        {
+                            <li>
+                                @roomType - <strong>@Model.RoomTypePrices[roomType].ToString("C", new CultureInfo("bg-BG"))</strong>
+                            </li>
+                        }
+                    </ul>
                 }
                 else
                 {
                     <p>Няма видове стаи.</p>
                 }
             </div>
+
+
 
             <div class="price">
                 <strong>Цена на нощувка:</strong> @Model.PricePerNight.ToString("C", new CultureInfo("bg-BG"))
@@ -261,6 +319,47 @@
 </div>
 
 <script type="text/javascript">
+    // Array of image URLs (you can dynamically generate this list in your C# code and pass it to JavaScript)
+    var images = @Html.Raw(Json.Serialize(Model.Images));
+
+    console.log(images)
+
+       function openModal() {
+        // Get the modal container for carousel images
+        const carouselImagesContainer = document.getElementById('carouselImagesContainer');
+
+        // Clear any previous carousel items
+        carouselImagesContainer.innerHTML = '';
+
+        // Loop through all images and create carousel items for the modal
+        images.forEach((imageUrl, index) => {
+            const item = document.createElement('div');
+            item.classList.add('carousel-item');
+
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.classList.add('d-block', 'w-100');
+            img.alt = 'Hotel Image';
+
+            // Mark the first image as 'active'
+            if (index === 0) {
+                item.classList.add('active');
+            }
+
+            item.appendChild(img);
+            carouselImagesContainer.appendChild(item);
+        });
+
+        // Reinitialize the Bootstrap carousel to the first image
+        $('#fullImageCarousel').carousel(0); // Reset to the first image
+
+        // Show the modal
+        const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+        imageModal.show();
+    }
+
+
+
     function increaseRoomCount(roomType) {
         var countElement = document.getElementById("count-" + roomType);
         var inputElement = document.getElementById("input-" + roomType);

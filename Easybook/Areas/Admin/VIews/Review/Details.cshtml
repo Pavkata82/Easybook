@@ -23,6 +23,9 @@
         <p><strong>Дата на отзив:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy")</p>
         <p><strong>Коментар:</strong> @Model.Comment</p>
         <p><strong>Хотел:</strong> @Model.Hotel.Name</p>
+        <a href="@Url.Action("Details", "Hotel", new { area = "Admin", id = Model.HotelId })" class="btn btn-info btn-sm">
+            <i class="bi bi-building"></i> Управление на хотела
+        </a>
     </div>
 </div>
 

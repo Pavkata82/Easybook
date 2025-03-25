@@ -29,6 +29,10 @@ namespace Easybook.Models.ViewModels
 
         public string ExactFitCombination { get; set; }
         public List<Review> Reviews { get; set; } // Add this property
+
+        public List<Facility>? HotelFacilities { get; set; }
+
+        public Dictionary<string, decimal> RoomTypePrices { get; set; } = new Dictionary<string, decimal>();
     }
 
 

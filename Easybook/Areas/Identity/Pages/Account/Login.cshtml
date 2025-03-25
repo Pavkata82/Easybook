@@ -5,47 +5,57 @@
     ViewData["Title"] = "Влизане";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh; background-color: #f8f9fa;">
+    <div class="card shadow-lg border-0" style="width: 100%; max-width: 400px; border-radius: 12px;">
+        <div class="card-body p-5">
+            <h3 class="text-center mb-4">@ViewData["Title"]</h3>
+
             <form id="account" method="post">
-                <h2>Използване на локален акаунт за влизане.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+
+                <!-- Email -->
                 <div class="form-floating mb-3">
                     <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                     <label asp-for="Input.Email" class="form-label">Имейл</label>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                 </div>
+
+                <!-- Password -->
                 <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                    <input asp-for="Input.Password" type="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Password" />
                     <label asp-for="Input.Password" class="form-label">Парола</label>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
+
+                <!-- Remember Me -->
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="Input.RememberMe" id="rememberMeCheck" />
+                    <label class="form-check-label" for="rememberMeCheck">
                         @Html.DisplayNameFor(m => m.Input.RememberMe)
                     </label>
                 </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Влизане</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Забравена парола?</a>
-                    </p>
-                    <p>
-                        <a id="resend-email-confirmation" asp-page="./ResendEmailConfirmation">Изпрати потвърждение наново.</a>
-                    </p>
 
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Регистрация като нов потребител.</a>
-                    </p>
+                <!-- Submit Button -->
+                <div class="d-grid">
+                    <button id="login-submit" type="submit" class="btn btn-primary btn-lg">
+                        Влизане
+                    </button>
+                </div>
+
+                <!-- Links -->
+                <div class="text-center mt-4">
+                    <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none small">Забравена парола?</a>
+                    <hr />
+                    <a id="resend-email-confirmation" asp-page="./ResendEmailConfirmation" class="text-decoration-none small">Изпрати потвърждение наново</a>
+                    <div class="mt-3">
+                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-secondary btn-sm">
+                            Регистрация като нов потребител
+                        </a>
+                    </div>
                 </div>
             </form>
-        </section>
+        </div>
     </div>
 </div>
 

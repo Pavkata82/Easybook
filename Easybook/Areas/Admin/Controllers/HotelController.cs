@@ -23,19 +23,52 @@ namespace Easybook.Areas.Admin.Controllers
             _userManager = userManager;
         }
 
-        public IActionResult ManageHotels(string hotelId = null)
+        public IActionResult ManageHotels(string searchTerm = null)
         {
-            var hotelsQuery = _context.Hotels.AsQueryable(); // Start with all hotels
+            var hotelsQuery = _context.Hotels.AsQueryable();
 
-            // If a hotelId is provided, filter the hotels by that ID
-            if (!string.IsNullOrEmpty(hotelId))
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                hotelsQuery = hotelsQuery.Where(h => h.HotelId.ToString().Contains(hotelId));
+                // Filter by either Hotel ID or Name (case-insensitive)
+                hotelsQuery = hotelsQuery.Where(h =>
+                    h.HotelId.ToString().Contains(searchTerm) ||
+                    h.Name.Contains(searchTerm));
             }
 
-            var hotels = hotelsQuery.ToList(); // Execute the query and get the list of hotels
+            var hotels = hotelsQuery
+                .OrderBy(h => h.Country)
+                .ToList();
 
-            return View(hotels); // Pass the filtered hotels to the view
+            return View(hotels);
+        }
+
+        // GET: Admin/Hotel/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            // Fetch hotel with its related data
+            var hotel = await _context.Hotels
+                .Include(h => h.Images.OrderByDescending(i => i.IsMain)) // Order images by IsMain
+                .Include(h => h.Rooms) // Include rooms
+                    .ThenInclude(r => r.RoomType) // Include room types
+                .Include(h => h.HotelFacilities) // Include hotel facilities
+                    .ThenInclude(hf => hf.Facility) // Include the facility details
+                .Include(h => h.Reviews) // Include reviews
+                    .ThenInclude(r => r.User)
+                .FirstOrDefaultAsync(h => h.HotelId == id);
+
+
+
+            if (hotel == null)
+            {
+                return NotFound();
+            }
+
+            return View(hotel); // Pass the hotel to the view
         }
 
 
@@ -107,8 +140,8 @@ namespace Easybook.Areas.Admin.Controllers
 
                 // Bulk-add rooms
                 await AddRooms(hotel.HotelId, viewModel.SingleRoomCount, "Единична", viewModel.SingleRoomPrice);
-                await AddRooms(hotel.HotelId, viewModel.DoubleRoomCount, "Двойна", viewModel.SingleRoomPrice);
-                await AddRooms(hotel.HotelId, viewModel.FamilyRoomCount, "Семейна", viewModel.SingleRoomPrice);
+                await AddRooms(hotel.HotelId, viewModel.DoubleRoomCount, "Двойна", viewModel.DoubleRoomPrice);
+                await AddRooms(hotel.HotelId, viewModel.FamilyRoomCount, "Семейна", viewModel.FamilyRoomPrice);
 
                 // Save images
                 if (viewModel.Images != null && viewModel.Images.Any())
@@ -531,8 +564,6 @@ namespace Easybook.Areas.Admin.Controllers
             _context.SaveChanges();
         }
 
-
-
         private async Task AddRooms(int hotelId, int count, string roomTypeName, decimal roomPrice)
         {
             var roomType = await _context.RoomTypes.FirstOrDefaultAsync(rt => rt.Name == roomTypeName);
@@ -551,34 +582,5 @@ namespace Easybook.Areas.Admin.Controllers
                 }
             }
         }
-
-        private async Task UpdateRooms(int hotelId, int count, string roomTypeName, decimal roomPrice)
-        {
-            var roomType = await _context.RoomTypes.FirstOrDefaultAsync(rt => rt.Name == roomTypeName);
-
-            if (roomType != null)
-            {
-                var existingRooms = _context.Rooms.Where(r => r.HotelId == hotelId && r.RoomTypeId == roomType.RoomTypeId).ToList();
-
-                // Remove existing rooms if count is less than the requested
-                if (existingRooms.Count > count)
-                {
-                    _context.Rooms.RemoveRange(existingRooms.Skip(count));
-                }
-
-                // Add new rooms if needed
-                for (int i = existingRooms.Count; i < count; i++)
-                {
-                    _context.Rooms.Add(new Room
-                    {
-                        HotelId = hotelId,
-                        RoomTypeId = roomType.RoomTypeId,
-                        Capacity = roomTypeName == "Единична" ? 1 : roomTypeName == "Двойна" ? 2 : 4,
-                        Price = roomPrice
-                    });
-                }
-            }
-        }
-
     }
 }
