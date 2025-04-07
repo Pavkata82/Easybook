@@ -2,87 +2,8 @@
     ViewData["Title"] = "Home Page";
 }
 
-<style>
-    /* Additional styling for better structure */
-    body {
-        background-color: #f8f9fa;
-    }
+<link rel="stylesheet" href="~/css/index-page.css" asp-append-version="true" />
 
-    .hero {
-        background: linear-gradient(to bottom right, #0056b3, #004085);
-        color: white;
-        padding: 4rem 0;
-        text-align: center;
-    }
-
-    .form-container {
-        max-width: 600px;
-        margin-top: 2rem;
-    }
-
-    /* Highlighting the date range */
-    .highlighted-date {
-        background-color: #0056b3;
-        color: white;
-    }
-
-    /* Styling for the datepicker popup */
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        cursor: pointer;
-    }
-
-    /* From Uiverse.io by cssbuttons-io */
-    #submit-btn{
-        --color: #1885d1;
-        font-family: inherit;
-        display: inline-block;
-        width: 8em;
-        height: 2.6em;
-        line-height: 2.5em;
-        margin: 20px;
-        position: relative;
-        cursor: pointer;
-        overflow: hidden;
-        border: 2px solid var(--color);
-        transition: color 0.5s;
-        z-index: 1;
-        font-size: 17px;
-        border-radius: 6px;
-        font-weight: 500;
-        color: var(--color);
-    }
-
-        #submit-btn:before {
-            content: "";
-            position: absolute;
-            z-index: -1;
-            background: var(--color);
-            height: 150px;
-            width: 200px;
-            border-radius: 50%;
-        }
-
-        #submit-btn:hover {
-            color: #fff;
-        }
-
-        #submit-btn:before {
-            top: 100%;
-            left: 100%;
-            transition: all 0.7s;
-        }
-
-        #submit-btn:hover:before {
-            top: -30px;
-            left: -30px;
-        }
-
-        #submit-btn:active:before {
-            background: #1271b4;
-            transition: background 0s;
-        }
-
-</style>
 <div class="container-fluid hero">
     <div class="row">
         <div class="col-md-12 d-flex flex-column align-items-center">
@@ -146,11 +67,6 @@
         </div>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous">
-</script>
 
 <script src="~/js/datepicker.js"></script>
 
