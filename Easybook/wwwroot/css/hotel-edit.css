@@ -198,12 +198,22 @@ textarea {
 
     .existing-image,
     .existing-image img {
-        max-width: 100%;
-        height: auto;
+        width: 100px;
+        height: 100px;
+    }
+
+    .existing-image {
+        max-width: 100px;
     }
 
     #image-preview img {
         width: 100px;
         height: 100px;
+    }
+
+    .delete-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
     }
 }

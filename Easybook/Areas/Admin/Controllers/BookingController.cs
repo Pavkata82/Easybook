@@ -25,7 +25,7 @@ namespace Easybook.Areas.Admin.Controllers
             _emailSender = emailSender;
         }
 
-        public IActionResult ManageBookings(string bookingId = null)
+        public IActionResult ManageBookings(string search = null)
         {
             // Retrieve all bookings from the database and order them
             var bookings = _context.Bookings
@@ -37,9 +37,12 @@ namespace Easybook.Areas.Admin.Controllers
                 .ToList(); // Convert to list first
 
             // If a bookingId is provided, filter the bookings by that ID
-            if (!string.IsNullOrEmpty(bookingId))
+            if (!string.IsNullOrEmpty(search))
             {
-                bookings = bookings.Where(b => b.BookingId.ToString().Contains(bookingId)).ToList();
+                var searchTerm = search.ToLower();
+                bookings = bookings.Where(b =>
+                    b.BookingId.ToString().Contains(searchTerm) ||
+                    b.Hotel.Name.ToLower().Contains(searchTerm)).ToList();
             }
 
             // Populate the dropdown with status options

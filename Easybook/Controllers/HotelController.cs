@@ -242,6 +242,10 @@ namespace Easybook.Controllers
                 string roomTypeName = roomTypeCount.Key;
                 int requiredCount = roomTypeCount.Value;
 
+                // Ако не искаме такъв тип стая — пропускаме проверката
+                if (requiredCount == 0)
+                    continue;
+
                 // Check if there are enough available rooms of the required type
                 if (!availableRoomCounts.ContainsKey(roomTypeName) || availableRoomCounts[roomTypeName] < requiredCount)
                 {

@@ -12,13 +12,14 @@
 <form method="get" class="mb-3">
     <div class="d-flex justify-content-between">
         <div class="input-group">
-            <input type="text" class="form-control" name="bookingId" placeholder="Търсене по Резервационен ID" value="@Context.Request.Query["bookingId"]" />
+            <input type="text" class="form-control" name="search" placeholder="Търсене по ID или Име на Хотел" value="@Context.Request.Query["search"]" />
             <button class="btn btn-primary" type="submit">
                 <i class="bi bi-search"></i> Търси
             </button>
         </div>
     </div>
 </form>
+
 
 <!-- Table for listing bookings -->
 <div class="row">
@@ -33,6 +34,7 @@
                         <thead>
                             <tr>
                                 <th>Резервационен ID</th>
+                                <th>Хотел</th>
                                 <th>Име на клиента</th>
                                 <th>Период на резервацията</th>
                                 <th>Статус</th>
@@ -44,6 +46,7 @@
                             {
                                 <tr>
                                     <td>@booking.BookingId</td>
+                                    <td>@booking.Hotel.Name</td>
                                     <td>@(booking.User?.FirstName + " " + booking.User?.LastName ?? "Няма данни")</td>
 
                                     <!-- Display the booking date range -->

@@ -34,39 +34,41 @@
 <h3>История на резервациите</h3>
 @if (Model.Bookings != null && Model.Bookings.Any())
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID на резервация</th>
-                <th>Хотел</th>
-                <th>Настаняване</th>
-                <th>Освобождаване</th>
-                <th>Статус</th>
-                <th>Детайли</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var booking in Model.Bookings)
-            {
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <td>@booking.BookingId</td>
-                    <td>@(booking.Hotel?.Name ?? "Няма")</td>
-                    <td>@booking.BookingDateRanges.FirstOrDefault()?.StartDate.ToString("dd/MM/yyyy")</td>
-                    <td>@booking.BookingDateRanges.FirstOrDefault()?.EndDate.ToString("dd/MM/yyyy")</td>
-                    <td>@booking.Status?.Name</td>
-                    <td>
-                        <a href="@Url.Action("BookingDetails", "Booking", new { id = booking.BookingId, area = "Admin" })" class="btn btn-sm btn-primary">
-                            Виж
-                        </a>
-                    </td>
+                    <th>ID на резервация</th>
+                    <th>Хотел</th>
+                    <th>Настаняване</th>
+                    <th>Освобождаване</th>
+                    <th>Статус</th>
+                    <th>Детайли</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model.Bookings)
+                {
+                    <tr>
+                        <td>@booking.BookingId</td>
+                        <td>@(booking.Hotel?.Name ?? "Няма")</td>
+                        <td>@booking.BookingDateRanges.FirstOrDefault()?.StartDate.ToString("dd/MM/yyyy")</td>
+                        <td>@booking.BookingDateRanges.FirstOrDefault()?.EndDate.ToString("dd/MM/yyyy")</td>
+                        <td>@booking.Status?.Name</td>
+                        <td>
+                            <a href="@Url.Action("BookingDetails", "Booking", new { id = booking.BookingId, area = "Admin" })" class="btn btn-sm btn-primary">
+                                Виж
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
 else
 {
     <p>Няма намерени резервации.</p>
 }
 
-<a href="@Url.Action("ManageUsers", "User", new { area = "Admin" })" class="btn btn-secondary">Обратно към потребителите</a>
+<a href="@Url.Action("ManageUsers", "User", new { area = "Admin" })" class="btn btn-secondary my-4">Обратно към потребителите</a>
