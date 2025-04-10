@@ -275,15 +275,25 @@ namespace Easybook.Controllers
         //Checks if there is a possible combination for the user's input (used in index method)
         private bool IsCombinationPossible(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
         {
-            // Get available rooms for the selected dates
             var availableRooms = rooms
                 .Where(r => IsRoomAvailable(r, checkInDate, checkOutDate))
-                .OrderByDescending(r => r.Capacity) // Prioritize larger rooms first
+                .OrderByDescending(r => r.Capacity)
                 .ToList();
 
-            // ✅ If any room is available, allow the booking (even if it's larger than the guest count)
-            return availableRooms.Any();
+            int coveredGuests = 0;
+
+            foreach (var room in availableRooms)
+            {
+                coveredGuests += room.Capacity;
+                if (coveredGuests >= totalGuests)
+                {
+                    return true; // ✅ Guests can be accommodated
+                }
+            }
+
+            return false; // ❌ Not enough capacity
         }
+
 
         private List<(string RoomTypeName, int RoomCount)>
         GetRoomCombinations(List<Room> rooms, int totalGuests, DateTime checkInDate, DateTime checkOutDate)
@@ -308,24 +318,58 @@ namespace Easybook.Controllers
 
         private List<(string RoomTypeName, int RoomCount)> FindExactCombination(List<Room> rooms, int totalGuests)
         {
-            var bestCombination = new List<(string RoomTypeName, int RoomCount)>();
-            int remainingGuests = totalGuests;
+            // Step 1: Group rooms by type and keep track of each room individually
+            var roomList = rooms
+                .OrderByDescending(r => r.Capacity)
+                .ThenBy(r => r.Price)
+                .ToList();
 
-            foreach (var room in rooms)
+            var result = new List<(string RoomTypeName, int RoomCount)>();
+            var usedRooms = new List<Room>();
+
+            bool success = FindCombinationRecursive(roomList, 0, totalGuests, new List<Room>(), out usedRooms);
+
+            if (!success)
+                return new List<(string RoomTypeName, int RoomCount)>();
+
+            // Convert usedRooms into a grouped list
+            result = usedRooms
+                .GroupBy(r => r.RoomType.Name)
+                .Select(g => (RoomTypeName: g.Key, RoomCount: g.Count()))
+                .ToList();
+
+            return result;
+        }
+
+        private bool FindCombinationRecursive(List<Room> rooms, int startIndex, int remainingGuests, List<Room> currentCombo, out List<Room> bestCombo)
+        {
+            bestCombo = null;
+
+            if (remainingGuests == 0)
             {
-                if (remainingGuests <= 0)
-                    break;
-
-                int roomCount = remainingGuests / room.Capacity;
-                if (roomCount > 0)
-                {
-                    bestCombination.Add((room.RoomType.Name, roomCount));
-                    remainingGuests -= roomCount * room.Capacity;
-                }
+                bestCombo = new List<Room>(currentCombo);
+                return true;
             }
 
-            return remainingGuests == 0 ? bestCombination : new List<(string RoomTypeName, int RoomCount)>();
+            for (int i = startIndex; i < rooms.Count; i++)
+            {
+                var room = rooms[i];
+
+                if (room.Capacity > remainingGuests)
+                    continue; // Skip rooms that overshoot
+
+                currentCombo.Add(room);
+
+                if (FindCombinationRecursive(rooms.Where((_, index) => index != i).ToList(), 0, remainingGuests - room.Capacity, currentCombo, out bestCombo))
+                    return true;
+
+                currentCombo.RemoveAt(currentCombo.Count - 1); // backtrack
+            }
+
+            return false;
         }
+
+
 
         private bool IsRoomAvailable(Room room, DateTime checkInDate, DateTime checkOutDate)
         {
