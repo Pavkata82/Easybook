@@ -1,73 +1,73 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    ViewData["IsHomePage"] = true;  // Set flag to true on the home page
 }
 
 <link rel="stylesheet" href="~/css/index-page.css" asp-append-version="true" />
 
-<div class="container-fluid hero">
-    <div class="row">
-        <div class="col-md-12 d-flex flex-column align-items-center">
-            <p class="display-1 text-white fw-bold mb-2">Easybook</p>
-            <p class="lead text-light fw-semibold mb-5">
-                Прави резервациите ти лесни...
-            </p>
+<div class="index-hero d-flex align-items-center">
+    <div class="container">
+        <div class="row justify-content-between align-items-center">
+            <!-- Left side: Title and Slogan -->
+            <div class="col-md-6 text-white text-center text-md-start mb-5 mb-md-0">
+                <h1 class="display-2 fw-bold animated fadeInLeft">Easybook</h1>
+                <p class="lead fw-semibold animated fadeInLeft">Прави резервациите ти лесни...</p>
+            </div>
 
-            @if (ViewData["ErrorMessages"] != null)
-            {
-                <div class="alert alert-danger">
-                    @ViewData["ErrorMessages"]
-                </div>
-            }
-
-            <form class="form-container bg-white p-4 rounded shadow" method="GET" action="@Url.Action("Index", "Hotel")">
-                <div class="row g-3 mb-3">
-                    <!-- Search Input for City or Hotel Name -->
-                    <div class="col-12">
-                       <input type="text" class="form-control" id="searchQuery" name="searchQuery"
-                               placeholder="Въведи град или име на хотел..." />
+            <!-- Right side: Search Form -->
+            <div class="col-md-5 animated fadeInUp" style="animation-delay: 0.5s;">
+                @if (ViewData["ErrorMessages"] != null)
+                {
+                    <div class="alert alert-danger">
+                        @ViewData["ErrorMessages"]
                     </div>
-                </div>
+                }
 
-                <div class="row g-3 mb-3">
-                    <div class="col-sm-6">
-                        <label for="checkInDate" class="form-label text-dark">Дата на настаняване</label>
-                        <input type="date" class="form-control" id="checkInDate" name="checkInDate" required />
+                <form class="form-container modern-form glass-bg p-4 p-md-5 rounded-4 shadow-lg" method="GET" action="@Url.Action("Index", "Hotel")">
+                    <div class="row g-3 mb-3 w-100">
+                        <div class="col-12">
+                            <input type="text" class="form-control" id="searchQuery" name="searchQuery" placeholder="Въведи град или име на хотел..." />
+                        </div>
                     </div>
-                    <div class="col-sm-6">
-                        <label for="checkOutDate" class="form-label text-dark">Дата на напускане</label>
-                        <input type="date" class="form-control" id="checkOutDate" name="checkOutDate" required />
+
+                    <div class="row g-3 mb-3 w-100">
+                        <div class="col-sm-6">
+                            <label for="checkInDate" class="form-label">Дата на настаняване</label>
+                            <input type="date" class="form-control" id="checkInDate" name="checkInDate" required />
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="checkOutDate" class="form-label">Дата на напускане</label>
+                            <input type="date" class="form-control" id="checkOutDate" name="checkOutDate" required />
+                        </div>
                     </div>
-                </div>
 
-                <div class="row g-3 mb-3">
-                    <div class="col-sm-6">
-                        <select class="form-select" id="adults" name="adults">
-                            <option value="1">1 Възрастен</option>
-                            <option value="2">2 Възрастни</option>
-                            <option value="3">3 Възрастни</option>
-                            <option value="4">4 Възрастни</option>
-                        </select>
+                    <div class="row g-3 mb-3 w-100">
+                        <div class="col-sm-6">
+                            <select class="form-select" id="adults" name="adults">
+                                <option value="1">1 Възрастен</option>
+                                <option value="2">2 Възрастни</option>
+                                <option value="3">3 Възрастни</option>
+                                <option value="4">4 Възрастни</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <select class="form-select" id="kids" name="kids">
+                                <option value="0">Без деца</option>
+                                <option value="1">1 Дете</option>
+                                <option value="2">2 Деца</option>
+                                <option value="3">3 Деца</option>
+                                <option value="4">4 Деца</option>
+                                <option value="5">5 Деца</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-sm-6">
-                        <select class="form-select" id="kids" name="kids">
-                            <option value="0">Без деца</option>
-                            <option value="1">1 Дете</option>
-                            <option value="2">2 Деца</option>
-                            <option value="3">3 Деца</option>
-                            <option value="4">4 Деца</option>
-                            <option value="5">5 Деца</option>
-                        </select>
-                    </div>
-                </div>
 
-                <button id="submit-btn" type="submit">Търси</button>
-            </form>
+                    <button id="submit-btn" type="submit">Търси</button>
+                </form>
 
-
+            </div>
         </div>
     </div>
 </div>
 
 <script src="~/js/datepicker.js"></script>
-
-

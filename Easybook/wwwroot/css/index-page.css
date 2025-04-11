@@ -3,16 +3,24 @@ body {
     background-color: #f8f9fa;
 }
 
-.hero {
-    background: linear-gradient(to bottom right, #0056b3, #004085);
-    color: white;
-    padding: 4rem 0;
-    text-align: center;
+/* Full-height background section */
+.index-hero {
+    min-height: calc(100vh - 100px); /* Adjust 100px if your navbar+footer height is different */
+    background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('/images/hotels/hotel-bg.jpg') no-repeat center center;
+    background-size: cover;
+    padding: 3rem 1rem;
 }
 
+    .index-hero .col-md-6 h1,
+    .index-hero .col-md-6 p {
+        animation: fadeInLeft 1.2s ease-out forwards;
+    }
+
 .form-container {
-    max-width: 600px;
-    margin-top: 2rem;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center all child elements horizontally */
 }
 
 /* Highlighting the date range */
@@ -26,6 +34,71 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
 }
 
+/* Modern glass-style form */
+.glass-bg {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Smooth field spacing */
+.form-container input,
+.form-container select {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid #ced4da;
+    transition: all 0.3s ease;
+}
+
+    .form-container input:focus,
+    .form-container select:focus {
+        border-color: #1885d1;
+        box-shadow: 0 0 0 0.25rem rgba(24, 133, 209, 0.25);
+        outline: none;
+    }
+
+/* Label and layout tweaks */
+.form-container label {
+    font-weight: 500;
+    color: #f8f9fa;
+}
+
+/* Better spacing inside the form */
+.form-container .form-label,
+.form-container .form-control,
+.form-container .form-select {
+    margin-bottom: 0.5rem;
+}
+
+.modern-form {
+    animation: fadeInUp 0.7s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInLeft {
+    from {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 /* From Uiverse.io by cssbuttons-io */
 #submit-btn {
     --color: #1885d1;
@@ -34,7 +107,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     width: 8em;
     height: 2.6em;
     line-height: 2.5em;
-    margin: 20px;
+    margin: 20px ;
     position: relative;
     cursor: pointer;
     overflow: hidden;

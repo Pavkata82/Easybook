@@ -21,3 +21,27 @@ body {
   margin-bottom: 60px;
 }
 
+footer.footer {
+    padding: 0.25rem 0; /* Reduced padding for a very compact footer */
+    background-color: #2c3e50; /* Dark background color */
+    color: #ecf0f1; /* Light text color */
+    text-align: center;
+    font-size: 0.75rem; /* Smaller font size */
+    margin-top: auto;
+}
+
+    footer.footer a {
+        color: #3498db; /* Soft blue for links */
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+        footer.footer a:hover {
+            color: #1abc9c; /* Light turquoise on hover */
+        }
+
+    footer.footer .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
