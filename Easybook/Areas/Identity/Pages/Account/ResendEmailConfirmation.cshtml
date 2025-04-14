@@ -4,29 +4,40 @@
     ViewData["Title"] = "Изпрати потвърждение наново";
 }
 
-<h1>@ViewData["Title"]</h1>
-<h2>Въведете имейла си.</h2>
-<hr />
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg rounded-4 p-4" style="max-width: 500px; width: 100%;">
+        <div class="card-body">
+            <h1 class="card-title text-center mb-3">@ViewData["Title"]</h1>
+            <p class="text-secondary text-center">Моля, въведете имейла си, за да получите нов линк за потвърждение.</p>
+            <hr class="my-4" />
 
-<!-- Display success message -->
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success" role="alert">
-        @TempData["SuccessMessage"]
-    </div>
-}
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Затвори"></button>
+                </div>
+            }
 
-<div class="row">
-    <div class="col-md-4">
-        <form method="post">
-            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" aria-required="true" placeholder="name@example.com" />
-                <label asp-for="Input.Email" class="form-label"></label>
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            <form method="post" novalidate>
+                <div asp-validation-summary="All" class="text-danger mb-3" role="alert"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" aria-required="true" placeholder="name@example.com" />
+                    <label asp-for="Input.Email">Имейл адрес</label>
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2">Изпрати отново</button>
+            </form>
+
+            <div class="text-center mt-4">
+                <a asp-page="/Index" class="text-decoration-none text-secondary">
+                    <i class="bi bi-arrow-left"></i> Назад към началото
+                </a>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Повторно изпращане</button>
-        </form>
+        </div>
     </div>
 </div>
 
