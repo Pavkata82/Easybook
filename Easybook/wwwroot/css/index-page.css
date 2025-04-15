@@ -107,7 +107,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     width: 8em;
     height: 2.6em;
     line-height: 2.5em;
-    margin: 20px ;
+    margin: 20px;
     position: relative;
     cursor: pointer;
     overflow: hidden;
@@ -118,7 +118,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border-radius: 6px;
     font-weight: 500;
     color: var(--color);
+
+    /* ✅ iOS fix without breaking your design */
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: none;
 }
+
+
 
     #submit-btn:before {
         content: "";
