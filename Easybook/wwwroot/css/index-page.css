@@ -1,9 +1,4 @@
-﻿/* Additional styling for better structure */
-body {
-    background-color: #f8f9fa;
-}
-
-/* Full-height background section */
+﻿/* Full-height background section */
 .index-hero {
     min-height: calc(100vh - 100px); /* Adjust 100px if your navbar+footer height is different */
     background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('/images/hotels/hotel-bg.jpg') no-repeat center center;
@@ -118,11 +113,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border-radius: 6px;
     font-weight: 500;
     color: var(--color);
-
-    /* ✅ iOS fix without breaking your design */
+    /*Fix for IOS */
     -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
-    background-image: none;
+    background-color: rgba(255, 255, 255, 0.85);
+    color: #1885d1;
 }
 
 
