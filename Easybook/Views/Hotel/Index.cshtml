@@ -7,6 +7,11 @@
 }
 
 <style>
+    #filter-select {
+        width: 20%;
+        border: 2px solid black;
+    }
+
     .hotel-card {
         border: 1px solid #dee2e6;
         border-radius: 8px;
@@ -69,6 +74,13 @@
 <div class="container my-5">
     <h1 class="text-center mb-4">Резултати от търсенето</h1>
 
+    <select class="form-select mb-3 text-center" aria-label="Filter" id="filter-select">
+        <option value="">---Филтър---</option>
+        <option value="MinPrice" selected="@(Context.Request.Query["filter"] == "MinPrice" ? "selected" : null)">Най-ниска цена</option>
+        <option value="MaxPrice" selected="@(Context.Request.Query["filter"] == "MaxPrice" ? "selected" : null)">Най-висока цена</option>
+    </select>
+
+
     @if (!Model.Hotels.Any())
     {
         <div class="alert alert-warning text-center" role="alert">
@@ -122,14 +134,14 @@
         <ul class="pagination justify-content-center mt-4">
             <!-- Previous Button -->
             <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
-                <a class="page-link" href="@Url.Action("Index", "Hotel", new { page = Model.CurrentPage - 1, CheckInDate = Model.SearchParams.CheckInDate, CheckOutDate = Model.SearchParams.CheckOutDate, Adults = Model.SearchParams.Adults, Kids = Model.SearchParams.Kids, SearchQuery = Model.SearchParams.SearchQuery })" tabindex="-1">Предишна</a>
+                <a class="page-link" href="@Url.Action("Index", "Hotel", new { page = Model.CurrentPage - 1, filter = Context.Request.Query["filter"], CheckInDate = Model.SearchParams.CheckInDate, CheckOutDate = Model.SearchParams.CheckOutDate, Adults = Model.SearchParams.Adults, Kids = Model.SearchParams.Kids, SearchQuery = Model.SearchParams.SearchQuery })" tabindex="-1">Предишна</a>
             </li>
 
             <!-- Page Number Links -->
             @for (int i = 1; i <= Model.TotalPages; i++)
             {
                 <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                    <a class="page-link" href="@Url.Action("Index", "Hotel", new { page = i, CheckInDate = Model.SearchParams.CheckInDate, CheckOutDate = Model.SearchParams.CheckOutDate, Adults = Model.SearchParams.Adults, Kids = Model.SearchParams.Kids, SearchQuery = Model.SearchParams.SearchQuery })">
+                    <a class="page-link" href="@Url.Action("Index", "Hotel", new { page = i, filter = Context.Request.Query["filter"], CheckInDate = Model.SearchParams.CheckInDate, CheckOutDate = Model.SearchParams.CheckOutDate, Adults = Model.SearchParams.Adults, Kids = Model.SearchParams.Kids, SearchQuery = Model.SearchParams.SearchQuery })">
                         @i
                     </a>
                 </li>
@@ -137,9 +149,26 @@
 
             <!-- Next Button -->
             <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
-                <a class="page-link" href="@Url.Action("Index", "Hotel", new { page = Model.CurrentPage + 1, CheckInDate = Model.SearchParams.CheckInDate, CheckOutDate = Model.SearchParams.CheckOutDate, Adults = Model.SearchParams.Adults, Kids = Model.SearchParams.Kids, SearchQuery = Model.SearchParams.SearchQuery })">Следваща</a>
+                <a class="page-link" href="@Url.Action("Index", "Hotel", new { page = Model.CurrentPage + 1, filter = Context.Request.Query["filter"], CheckInDate = Model.SearchParams.CheckInDate, CheckOutDate = Model.SearchParams.CheckOutDate, Adults = Model.SearchParams.Adults, Kids = Model.SearchParams.Kids, SearchQuery = Model.SearchParams.SearchQuery })">Следваща</a>
             </li>
         </ul>
     </nav>
 
 </div>
+
+<script>
+    document.getElementById("filter-select").addEventListener("change", function () {
+        const filter = this.value;
+        const params = new URLSearchParams(window.location.search);
+
+        // Keep existing parameters
+        if (filter) {
+            params.set("filter", filter);
+        } else {
+            params.delete("filter");
+        }
+
+        params.set("page", 1); // reset to first page on filter change
+        window.location.href = "?" + params.toString();
+    });
+</script>

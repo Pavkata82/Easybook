@@ -22,7 +22,7 @@ namespace Easybook.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(SearchViewModel model, int page = 1)
+        public async Task<IActionResult> Index(SearchViewModel model, int page = 1, string filter = null)
         {
             int pageSize = 3; // Number of results per page
 
@@ -83,6 +83,7 @@ namespace Easybook.Controllers
                         .Select(img => img.ImageUrl)
                         .FirstOrDefault() ?? "/images/hotels/default.jpg", // Fallback image
                     Rooms = h.Rooms.ToList(),
+                    PricePerNight = h.Rooms.Any() ? h.Rooms.Min(r => r.Price) : 0
                 })
                 .ToListAsync();
 
@@ -95,6 +96,16 @@ namespace Easybook.Controllers
                     IsCombinationPossible(hotel.Rooms, totalGuests, checkInDate.Value, checkOutDate.Value)
                 ).ToList();
             }
+
+            if (filter == "MinPrice")
+            {
+                hotelsData = hotelsData.OrderBy(h => h.PricePerNight).ToList();
+            }
+            else if (filter == "MaxPrice")
+            {
+                hotelsData = hotelsData.OrderByDescending(h => h.PricePerNight).ToList();
+            }
+
 
             // ✅ Paginate the hotels data
             var totalHotels = hotelsData.Count;
